@@ -12,7 +12,7 @@ pip install Doraemon
 4. User-friendly Chrome
 
 # Example
-##1. Google Knowledge Graph
+## 1. Google Knowledge Graph
 ```python
 from Doraemon.OnlineSearch import google_KG
 
@@ -26,7 +26,7 @@ res = google_KG.get_entity("alibaba", get_proxies_fun=get_proxies)
 print(res)
 ```
 
-##2. Google Translator
+## 2. Google Translator
 ```python
 from Doraemon.OnlineSearch import google_translator
 
@@ -156,7 +156,7 @@ print(res2)
 ```
 
 
-##3. Robust Requests
+## 3. Robust Requests
 ```python
 from Doraemon.Requests import requests_dora
 url = "https://www.baidu.com"
@@ -177,7 +177,7 @@ print(res1.status_code)
 print(res2.status_code)
 ```
 
-##4. User-friendly Chrome
+## 4. User-friendly Chrome
 ```python
 from Doraemon.Requests import chrome_dora
 
