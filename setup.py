@@ -26,6 +26,7 @@ REQUIRED = [
     "requests",
     "bs4",
     "pyprind",
+    "PyExecJS",
 ]
 
 # What packages are optional?
