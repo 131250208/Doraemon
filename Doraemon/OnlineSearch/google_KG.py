@@ -38,7 +38,7 @@ def google_search(queryStr, get_proxies_fun):
     return html
 
 
-def get_entity(org_name, get_proxies_fun, wait=1.5):
+def get_entity(query_str, get_proxies_fun, wait=1.5):
     '''
     get more relevant org name by search engine(google
     :param query_set:
@@ -47,9 +47,9 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
     '''
 
     rel_org_name_set = set()
-    logging.warning("start crawling {}...".format(org_name))
+    logging.warning("start crawling {}...".format(query_str))
 
-    text = google_search(org_name, get_proxies_fun)
+    text = google_search(query_str, get_proxies_fun)
     random.seed(time.time())
     time.sleep(wait * random.random())
 
@@ -159,8 +159,8 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
         time.sleep(wait * random.random())
 
     rel_org_name_list = [org_name for org_name in rel_org_name_set if len(org_name) > 1]
-    return {"is_org": is_org, "name": enti_name, "type": enti_type, "attributes": attr_dict,
-            "des": des_info, "rel_org": rel_org_name_list}
+    return {"query_str": query_str, "name": enti_name, "type": enti_type, "is_org": is_org,
+            "des": des_info, "attributes": attr_dict, "rel_org": rel_org_name_list}
 
 
 if __name__ == "__main__":
