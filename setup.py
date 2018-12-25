@@ -18,13 +18,14 @@ URL = 'https://github.com/131250208/Doraemon'
 EMAIL = 'wychengpublic@163.com'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = 0.5
+VERSION = 0.6
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     "selenium",
     "requests",
     "bs4",
+    "pyprind",
 ]
 
 # What packages are optional?
