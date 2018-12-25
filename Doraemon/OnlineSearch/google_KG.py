@@ -54,18 +54,25 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
     time.sleep(wait * random.random())
 
     soup = BeautifulSoup(text, "lxml")
-    # identify the type
+
+    # it there an entity in google KG?
     div_kg_hearer = soup.select_one("div.kp-header")
 
     if div_kg_hearer is None: # if there is no knowledge graph at the right, drop it
         return None
 
-    # enti_name = div_kg_hearer.select_one("div[role=heading] span")
-    # enti_name = enti_name.text if enti_name is not None else None
-    enti_name = re.search('\["t-dhmk9MkDbvI",.*\[\["data",null,null,null,null,\[null,"\[\\\\"(.*)\\\\",', text).group(1)
+    enti_name = div_kg_hearer.select_one("div[role=heading] span")
+    enti_name = enti_name.text if enti_name is not None else None
+    if enti_name is None or "..." in enti_name:
+        se = re.search('\["t-dhmk9MkDbvI",.*\[\["data",null,null,null,null,\[null,"\[\\\\"(.*)\\\\",', text)
+        if se is not None:
+            enti_name = se.group(1)
+        else:
+            return None
 
+    # identify the type
     span_list = div_kg_hearer.select("span")
-    enti_type = span_list[-1].text if len(span_list) > 0 else "unknown"
+    enti_type = span_list[-1].text if len(span_list) > 1 else "unknown"
 
     # description from wikipedia
     des = soup.find("h3", text="Description")
@@ -164,6 +171,7 @@ if __name__ == "__main__":
         }
         return proxies
 
+    # Association of Public and Land‑grant ...
     res = get_entity("Association of Public and Land‑grant ...", get_proxies_fun=get_proxies)
     print(res)
 
