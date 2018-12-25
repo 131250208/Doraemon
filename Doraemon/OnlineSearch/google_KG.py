@@ -21,20 +21,11 @@ def quote(queryStr):
     return queryStr
 
 
-headers = {
-    "accept": "*/*;q=0.8",
-    "accept-encoding": "gzip, deflate, br",
-    "Content-Type": "*/*",
-    "referer": "https://www.google.com/",
-    "user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20130406 Firefox/23.0",
-}
-
-
 def google_search(queryStr, get_proxies_fun):
     queryStr = quote(queryStr)
     url = 'https://www.google.com/search?biw=1920&safe=active&hl=en&q=%s&oq=%s' % (queryStr, queryStr)
 
-    response = requests_dora.try_best_2_get(url, headers=headers, invoked_by="google_search", get_proxies_fun=get_proxies_fun)
+    response = requests_dora.try_best_2_get(url, headers=requests_dora.get_default_headers(), invoked_by="google_search", get_proxies_fun=get_proxies_fun)
     html = ""
     status = response.status_code
     if status == 200:
@@ -69,8 +60,9 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
     if div_kg_hearer is None: # if there is no knowledge graph at the right, drop it
         return None
 
-    enti_name = div_kg_hearer.select_one("div[role=heading] span")
-    enti_name = enti_name.text if enti_name is not None else None
+    # enti_name = div_kg_hearer.select_one("div[role=heading] span")
+    # enti_name = enti_name.text if enti_name is not None else None
+    enti_name = re.search('\["t-dhmk9MkDbvI",.*\[\["data",null,null,null,null,\[null,"\[\\\\"(.*)\\\\",', text).group(1)
 
     span_list = div_kg_hearer.select("span")
     enti_type = span_list[-1].text if len(span_list) > 0 else "unknown"
@@ -106,7 +98,7 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
     for a in a_reltype_list:
         rel_org_name_set.add(a["title"].strip())
 
-    # collect next urls
+    # collect next urls e.g. : more x+
     div_list = soup.select("div.yp1CPe")
     next = []
     host = "https://www.google.com"
@@ -116,12 +108,14 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
             if "http" not in a["href"]:
                 next.append("%s%s" % (host, a["href"]))
 
+    # crawl parent org
     a_parent_org = soup.find("a", text="Parent organization")
     if a_parent_org is not None:
         parent_str = a_parent_org.parent.parent.text.strip()
         parent_org = parent_str.split(":")[1]
         rel_org_name_set.add(parent_org.strip())
 
+    # crawl subsidiaries
     a_subsidiaries = soup.find("a", text="Subsidiaries")
     if a_subsidiaries is not None:
         href = a_subsidiaries["href"]
@@ -138,13 +132,16 @@ def get_entity(org_name, get_proxies_fun, wait=1.5):
     # scrawl urls in list 'next'
     bar = pyprind.ProgBar(len(next), title="crawling relevant org names...")
     for url in next:
-        res = requests_dora.try_best_2_get(url, invoked_by="get_org_name", headers=headers, get_proxies_fun=get_proxies_fun)
+        res = requests_dora.try_best_2_get(url, invoked_by="get_org_name", headers=requests_dora.get_default_headers(), get_proxies_fun=get_proxies_fun)
         soup = BeautifulSoup(res.text, "lxml")
+
+        # crawl items at the top
         a_list = soup.select("a.klitem")
         for a in a_list:
             rel_org_name = a["title"]
             rel_org_name_set.add(rel_org_name.strip())
 
+        # crawl headings under the map if any
         heading_list = soup.select("div.VkpGBb")
         for heading in heading_list:
             heading_str = heading.select_one("div[role='heading']")
@@ -167,7 +164,7 @@ if __name__ == "__main__":
         }
         return proxies
 
-    res = get_entity("alibaba", get_proxies_fun=get_proxies)
+    res = get_entity("Association of Public and Land‑grant ...", get_proxies_fun=get_proxies)
     print(res)
 
 
