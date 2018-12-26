@@ -132,7 +132,7 @@ def trans(ori_text, sl="auto", tl="en", get_proxies_fun=None):
     :param tl:
     :return:
     '''
-    info = ori_text[:30] if len(ori_text) > 30 else ori_text
+    info = ori_text[:50] if len(ori_text) > 50 else ori_text
     logging.warning("start translating: {}...".format(info))
 
     js = trans_req(ori_text, sl, tl, get_proxies_fun)
@@ -143,6 +143,8 @@ def trans(ori_text, sl="auto", tl="en", get_proxies_fun=None):
         for pas in js[0]:
             trans_text += pas[0]
 
+    info = trans_text[:50] if len(trans_text) > 50 else trans_text
+    logging.warning("translation result: {}...".format(info))
     return trans_text
 
 
