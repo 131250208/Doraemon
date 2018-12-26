@@ -6,6 +6,7 @@ import json
 import logging
 import html
 import time
+import pyprind
 from Doraemon.Requests import requests_dora
 
 '''reference: language 2 code
@@ -181,7 +182,7 @@ def trans_long(ori_text, sl="auto", tl="en", get_proxies_fun=None):
         return ori_text
 
     en_text = ""
-    for sni in snippets:
+    for sni in pyprind.prog_bar(snippets):
         en_text += trans(sni, sl, tl, get_proxies_fun)
 
     return en_text
