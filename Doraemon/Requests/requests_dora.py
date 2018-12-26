@@ -4,27 +4,6 @@ import sys
 import time
 import requests
 from Doraemon.Requests import settings
-import re
-
-
-def get_data5u_proxies(api=None):
-    url = "http://api.ip.data5u.com/dynamic/get.html?order=53b3de376027aa3f699dc335d2bc0674&sep=3"
-    if api is not None:
-        url = api
-
-    res = try_best_2_get(url)
-    proxy = res.text.strip()
-
-    if not re.match("\d+\.\d+\.\d+\.\d+:\d+", proxy):
-        logging.warning("the proxy expired...")
-        raise Exception
-
-    proxies = {
-        "http": "http://{}".format(proxy),
-        "https": "https://{}".format(proxy),
-    }
-    logging.warning("current proxy: {}".format(proxy))
-    return proxies
 
 
 def get_default_headers():
