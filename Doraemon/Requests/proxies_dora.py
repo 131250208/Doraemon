@@ -18,12 +18,7 @@ def get_data5u_proxies(api=None):
         logging.warning("the proxy expired...")
         raise Exception
 
-    proxies = {
-        "http": "http://{}".format(proxy),
-        "https": "https://{}".format(proxy),
-    }
-    logging.warning("current proxy: {}".format(proxy))
-    return proxies
+    return get_proxies(proxy)
 
 
 def get_proxies(proxy):
@@ -31,7 +26,7 @@ def get_proxies(proxy):
         "http": "http://{}".format(proxy),
         "https": "https://{}".format(proxy),
     }
-    logging.warning("current proxy: {}".format(proxy))
+    logging.info("current proxy: {}".format(proxy))
     return proxies
 
 

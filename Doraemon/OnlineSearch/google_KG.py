@@ -3,7 +3,7 @@ import time
 from bs4 import BeautifulSoup
 from urllib import parse
 import re
-from Doraemon.Requests import requests_dora
+from Doraemon.Requests import requests_dora, proxies_dora
 import pyprind
 import logging
 
@@ -59,6 +59,7 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
     div_kg_hearer = soup.select_one("div.kp-header")
 
     if div_kg_hearer is None: # if there is no knowledge graph at the right, drop it
+        logging.warning("no entity returned for this query")
         return None
 
     enti_name = div_kg_hearer.select_one("div[role=heading] span")
@@ -68,6 +69,7 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
         if se is not None:
             enti_name = se.group(1)
         else:
+            logging.warning("sth went wrong when extracting the name of the entity")
             return None
 
     # identify the type
@@ -172,7 +174,7 @@ if __name__ == "__main__":
         return proxies
 
     # Association of Public and Land‑grant ...
-    res = get_entity("Association of Public and Land‑grant ...", get_proxies_fun=get_proxies)
+    res = get_entity("Roubaix", get_proxies_fun=get_proxies)
     print(res)
 
 
