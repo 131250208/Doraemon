@@ -13,7 +13,7 @@ def get_default_headers():
     ip_byte3 = random.randint(121, 255)
     ip_byte4 = random.randint(121, 255)
     headers["Referer"] = "{}.{}.{}.{}".format(ip_byte1, ip_byte2, ip_byte3, ip_byte4)
-    return headers
+    return headers.copy()
 
 
 def get_random_user_agent():
