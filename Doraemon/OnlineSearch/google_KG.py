@@ -86,9 +86,7 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
     # identify whether it is a organization
     pattern_org = "(%s)" % "|".join(ORG_KEYWORDS)
     se = re.search(pattern_org, enti_type, flags=re.I)
-    is_org = True
-    if se is None:
-        is_org = False
+    is_org = False if se is None else True
 
     # extract attributes
     attr_tags = soup.select("div.Z1hOCe")
