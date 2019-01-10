@@ -69,6 +69,7 @@ def detail_proxies_ipv6(proxies):
         logging.warning("failed to connect to geolocation url ...")
     ""
 
+
 if __name__ == "__main__":
     while True:
         proxies = get_proxies_fr_pool()

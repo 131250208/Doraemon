@@ -1,20 +1,61 @@
-from Doraemon import requests_dora, proxies_dora
+from Doraemon import requests_dora
 from bs4 import BeautifulSoup
 import re
+import time
+import logging
+import random
 
 
-def get_around(city, shop_id_center, dis, page):
-    url = "http://www.dianping.com/search/around/{}/10_{}/d{}p{}".format(city, shop_id_center, dis, page)
+def get_around(city_id, shop_id_center, dis, page, get_proxies_fun=None):
+    '''
+    get shops in the vicinity of the center shop
+    :param city_id: the id of the target city
+    :param shop_id_center: shop id of the center shop
+    :param dis: the max distance of shops from the center shop
+    :param page: page index [1, 50]
+    :return: a list of shops
+    e.g.
+    [
+      {
+        "img_src": "https://img.meituan.net/msmerchant/2e5787325ba4579ec2e2e3f45038ade1149446.jpg%40340w_255h_1e_1c_1l%7Cwatermark%3D1%26%26r%3D1%26p%3D9%26x%3D2%26y%3D2%26relative%3D1%26o%3D20",
+        "title": "\u901f\u5ea6\u62ab\u8428(\u534e\u8d38\u57ce\u5e97)",
+        "star_level": 4.5,
+        "review_num": 30,
+        "mean_price": 89,
+        "cat": "\u897f\u9910",
+        "region": "\u5317\u82d1\u5bb6\u56ed",
+        "addr": "\u6e05\u82d1\u8def13\u53f7",
+        "rec_dish": [
+          "\u9ed1\u829d\u9ebb\u6c99\u62c9",
+          "\u87f9\u8089\u610f\u9762",
+          "\u706b\u817f\u69b4\u83b2\u62ab\u8428\u53cc\u62fc"
+        ],
+        "score": {
+          "taste": 8.5,
+          "env": 8.4,
+          "service": 8.4
+        }
+      },
+    ]
+    '''
+
+    url = "http://www.dianping.com/search/around/{}/10_{}/d{}p{}".format(city_id, shop_id_center, dis, page)
     headers = requests_dora.get_default_headers()
-    headers["Accept"] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
-    headers["User-Agent"] = requests_dora.get_random_user_agent()
+    headers["Accept"] = 'application/json, text/javascript'
+    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
     headers["Host"] = "www.dianping.com"
-    headers["Referer"] = "http://www.dianping.com/search/around/2/10_5724615/d2000"
+    del headers["Referer"]
 
     while True:
-        res = requests_dora.try_best_2_get(url, get_proxies_fun=proxies_dora.get_data5u_proxies, headers=headers)
+        res = requests_dora.try_best_2_get(url, get_proxies_fun=get_proxies_fun, headers=headers)
         if res.status_code == 200:
             break
+        random.seed(time.time())
+        sleep_time = 3 + 7 * random.random()
+        logging.warning("failde ... try again in {} s...".format(sleep_time))
+        time.sleep(sleep_time)
+
+    # decrypt
     html = res.text
     url = "https:{}".format(re.search('href="(//s3plus\.meituan\.net.*?\.css)">', html).group(1))
     map_code2char = get_map_code2char(url)
@@ -27,6 +68,7 @@ def get_around(city, shop_id_center, dis, page):
     soup = BeautifulSoup(html, "lxml")
     li_list = soup.select("div.shop-list > ul > li")
 
+    # crawl
     shop_list = []
     for li in li_list:
         shop = {}
@@ -36,12 +78,13 @@ def get_around(city, shop_id_center, dis, page):
             shop["img_src"] = img_src
         except:
             pass
+
         try:
             txt = li.select_one("div.txt")
             title = txt.select_one("div.tit > a")["title"]
             shop["title"] = title
         except:
-            pass
+            continue
 
         try:
             comment = txt.select_one("div.comment")
@@ -69,6 +112,7 @@ def get_around(city, shop_id_center, dis, page):
 
         try:
             rec_dish = txt.select("div.recommend > a")
+            assert len(rec_dish) > 0
             rec_dish = [dish.get_text() for dish in rec_dish]
             shop["rec_dish"] = rec_dish
         except:
@@ -88,11 +132,58 @@ def get_around(city, shop_id_center, dis, page):
         shop_list.append(shop)
     return shop_list
 
-def search(keyword, page):
-    url = "http://www.dianping.com/search/keyword/2/0_{}/p{}".format(keyword, page)
+
+def search_shops(city_id, keyword, page, get_proxies_fun=None):
+    '''
+    seach shops by keyword
+    :param city_id: the id of the target city
+    :param keyword: the keyword
+    :param page: page index [1, 50]
+    :return: a list of shops : [{"name": "shopname1", "shop_id": "1245587}, ...]
+    '''
+    url = "http://www.dianping.com/search/keyword/{}/0_{}/p{}".format(city_id, keyword, page)
+    headers = requests_dora.get_default_headers()
+    headers["Accept"] = 'application/json, text/javascript'
+    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
+    headers["Host"] = "www.dianping.com"
+    del headers["Referer"]
+
+    while True:
+        res = requests_dora.try_best_2_get(url, get_proxies_fun=get_proxies_fun, headers=headers)
+        if res.status_code == 200:
+            break
+        random.seed(time.time())
+        sleep_time = 3 + 7 * random.random()
+        logging.warning("failde ... try again in {} s...".format(sleep_time))
+        time.sleep(sleep_time)
+
+    html = res.text
+    soup = BeautifulSoup(html, "lxml")
+    li_list = soup.select("div.shop-list > ul > li")
+
+    shop_list = []
+    for li in li_list:
+        shop = {}
+        try:
+            txt = li.select_one("div.txt")
+            a_title = txt.select_one("div.tit > a")
+            title = a_title["title"]
+            shop_id = a_title["data-shopid"]
+            shop["name"] = title
+            shop["shop_id"] = shop_id
+        except:
+            continue
+        shop_list.append(shop)
+
+    return shop_list
 
 
 def get_map_code2char(url):
+    '''
+    get the map for decrypting
+    :param url: the url of the css file which is used for encrypt
+    :return:
+    '''
     headers = requests_dora.get_default_headers()
     headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"
     res = requests_dora.try_best_2_get(url, headers=headers)
@@ -129,9 +220,16 @@ def get_map_code2char(url):
         map_key2char_global = {**map_key2char_global, **map_key2char}
     return map_key2char_global
 
+
 if __name__ == "__main__":
-    shop_list = get_around("2", "5724615", 2000, 2)
-    print(shop_list)
+    # shop_list = search_shops("2", "4s店", 1)
+    # print(shop_list)
+
+    # import json
+    # shop_list = get_around("2", "5724615", 2000, 2)
+    # print(json.dumps(shop_list, indent=2))
+
+    # get the map to decrypt
     # url = "https://s3plus.meituan.net/v1/mss_0a06a471f9514fc79c981b5466f56b91/svgtextcss/8d42683a9b290707dcf319a5920cff72.css"
     # map1 = get_map_code2char(url)
     # print(map1)

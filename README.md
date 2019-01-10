@@ -6,15 +6,79 @@ pip install Doraemon
 ```
 
 # Checklist
+**Requests**
+***
+1. Robust Requests
+2. Proxy Kit
+3. User-friendly Chrome
+***
+
+**OnlineSearch**
+***
 1. Google Knowledge Graph
 2. Google Translator
-3. Robust Requests
-4. User-friendly Chrome
+3. Dianping # 大众点评
+***
 
 # Example
-## 1. Google Knowledge Graph
+## Requests
+### 1. Robust Requests
 ```python
-from Doraemon.OnlineSearch import google_KG
+from Doraemon import requests_dora
+url = "https://www.baidu.com"
+
+headers = requests_dora.get_default_headers()
+headers["User-Agent"] = requests_dora.get_random_user_agent()
+
+def get_proxies():
+    proxy_str = "127.0.0.1:1080"
+    proxies = {"http": "http://%s" % proxy_str,
+               "https": "http://%s" % proxy_str, }
+    return proxies
+
+# max_times, get_proxies_fun, and invoked_by is optional, other parameters are the same as the requests.get() and requests.post()
+res1 = requests_dora.try_best_2_get(url, max_times=5, get_proxies_fun=get_proxies, invoked_by="parent_fun_name") 
+res2 = requests_dora.try_best_2_post(url, max_times=5, get_proxies_fun=get_proxies)
+print(res1.status_code)
+print(res2.status_code)
+```
+### 2. Proxy Kit
+```python
+from Doraemon import proxies_dora
+proxies1 = proxies_dora.get_proxies("127.0.0.1:223") # get a self-defined proxies dict
+proxies2 = proxies_dora.get_data5u_proxies("your data5u api key") # input api key for crawling, get a proxies dict
+
+pool = [
+"127.0.0.1:233",
+"123.123.123.123:123",
+"...",
+]
+
+proxies_dora.set_pool(pool) # set a self-defined proxy pool
+proxies3 = proxies_dora.get_proxies_fr_pool() # get a proxies dict from the pool
+
+loc_info1 = proxies_dora.loc_proxies_ipv4(proxies1) # get location info of a given proxy, ipv4 only
+loc_info2 = proxies_dora.detail_proxies_ipv6(proxies2) # get coarse-grained location info of a given proxy, for both ipv4 and ipv6
+
+```
+### 3. User-friendly Chrome
+```python
+from Doraemon import chrome_dora
+
+proxy = "127.0.0.1:1080"
+baidu_url = "https://www.baidu.com"
+# no_images: do not load images(response more quickly)
+# headless: make the chrome invisible
+# proxy: set if you need
+# they are all optional
+chrome = chrome_dora.MyChrome(headless=False, proxy="127.0.0.1:1080", no_images=True) 
+chrome.get(baidu_url)
+print(chrome.page_source)
+```
+
+### 1. Google Knowledge Graph
+```python
+from Doraemon import google_KG
 
 def get_proxies():
     proxy_str = "127.0.0.1:1080"
@@ -26,9 +90,9 @@ res = google_KG.get_entity("alibaba", get_proxies_fun=get_proxies)
 print(res)
 ```
 
-## 2. Google Translator
+### 2. Google Translator
 ```python
-from Doraemon.OnlineSearch import google_translator
+from Doraemon import google_translator, proxies_dora
 
 def get_proxies():
     proxy_str = "127.0.0.1:1080"
@@ -38,15 +102,18 @@ def get_proxies():
 
 ori_text = "中华民国"
 # sl, tl and get_proxies_fun are optional, the default values are "auto", "en", None
-res1 = google_translator.trans(ori_text,sl="auto", tl="zh-TW", get_proxies_fun=get_proxies)
-long_text = ori_text * 2500 
-res2 = google_translator.trans_long(long_text)# if len(text) > 5000
+res1 = google_translator.trans(ori_text,sl="auto", tl="zh-TW", get_proxies_fun=get_proxies) 
+# replace the function get_proxies with proxies_dora.get_proxies("127.0.0.1:1080")
+res2 = google_translator.trans(ori_text,sl="auto", tl="zh-TW", get_proxies_fun=lambda: proxies_dora.get_proxies("127.0.0.1:1080")) 
+
+long_text = ori_text * 2500 # 10000 characters
+res3 = google_translator.trans_long(long_text)# if len(text) > 5000
 
 print(res1)
 print(res2)
-
 ```
-### Language Code:
+
+**Language Code:**
 ```angular2html
 检测语言: auto
 阿尔巴尼亚语: sq
@@ -154,41 +221,42 @@ print(res2)
 中文(繁体): zh-TW
 中文(简体): zh-CN
 ```
-
-
-## 3. Robust Requests
+### 3. Dianping
 ```python
-from Doraemon.Requests import requests_dora
-url = "https://www.baidu.com"
+from Doraemon import dianping, proxies_dora
 
-headers = requests_dora.get_default_headers()
-headers["User-Agent"] = requests_dora.get_random_user_agent()
+# get_proxies_fun is optional, set if you want to use a proxy
+shop_list = dianping.search_shops("2", "4s店", 1, get_proxies_fun=lambda: proxies_dora.get_proxies("127.0.0.1:1080")) # args: city id, keyword, page index
+# [{"name": "shopname1", "shop_id": "1245587}, ...]
 
-def get_proxies():
-    proxy_str = "127.0.0.1:1080"
-    proxies = {"http": "http://%s" % proxy_str,
-               "https": "http://%s" % proxy_str, }
-    return proxies
+# get_proxies_fun is optional, set if you want to use a proxy, this example use data5u proxy, the website is " 
+shop_list_around = dianping.get_around("1", "5724615", 2000, 1, get_proxies_fun=lambda: proxies_dora.get_data5u_proxies("your data5u api key")) # args: city id, shop id, max distance, page index
+'''
+shop_list_around is like this:
+[
+  {
+    "img_src": "https://img.meituan.net/msmerchant/2e5787325ba4579ec2e2e3f45038ade1149446.jpg%40340w_255h_1e_1c_1l%7Cwatermark%3D1%26%26r%3D1%26p%3D9%26x%3D2%26y%3D2%26relative%3D1%26o%3D20",
+    "title": "\u901f\u5ea6\u62ab\u8428(\u534e\u8d38\u57ce\u5e97)",
+    "star_level": 4.5,
+    "review_num": 30,
+    "mean_price": 89,
+    "cat": "\u897f\u9910",
+    "region": "\u5317\u82d1\u5bb6\u56ed",
+    "addr": "\u6e05\u82d1\u8def13\u53f7",
+    "rec_dish": [
+      "\u9ed1\u829d\u9ebb\u6c99\u62c9",
+      "\u87f9\u8089\u610f\u9762",
+      "\u706b\u817f\u69b4\u83b2\u62ab\u8428\u53cc\u62fc"
+    ],
+    "score": {
+      "taste": 8.5,
+      "env": 8.4,
+      "service": 8.4
+    }
+  },
+]
+'''
 
-# max_times, get_proxies_fun, and invoked_by is optional, other parameters are the same as the requests.get() and requests.post()
-res1 = requests_dora.try_best_2_get(url, max_times=5, get_proxies_fun=get_proxies, invoked_by="parent_fun_name") 
-res2 = requests_dora.try_best_2_post(url, max_times=5, get_proxies_fun=get_proxies)
-print(res1.status_code)
-print(res2.status_code)
 ```
 
-## 4. User-friendly Chrome
-```python
-from Doraemon.Requests import chrome_dora
-
-proxy = "127.0.0.1:1080"
-baidu_url = "https://www.baidu.com"
-# no_images: do not load images(response more quickly)
-# headless: make the chrome invisible
-# proxy: set if you need
-# they are all optional
-chrome = chrome_dora.MyChrome(headless=False, proxy="127.0.0.1:1080", no_images=True) 
-chrome.get(baidu_url)
-print(chrome.page_source)
-```
 
