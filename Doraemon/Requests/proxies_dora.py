@@ -71,7 +71,4 @@ def detail_proxies_ipv6(proxies):
 
 
 if __name__ == "__main__":
-    while True:
-        proxies = get_proxies_fr_pool()
-        detail_proxies_ipv6(proxies)
-        time.sleep(1)
+    pass
