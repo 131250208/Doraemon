@@ -229,7 +229,8 @@ from Doraemon import dianping, proxies_dora
 shop_list = dianping.search_shops("2", "4s店", 1, get_proxies_fun=lambda: proxies_dora.get_proxies("127.0.0.1:1080")) # args: city id, keyword, page index
 # [{"name": "shopname1", "shop_id": "1245587}, ...]
 
-# get_proxies_fun is optional, set if you want to use a proxy, this example use data5u proxy, the website is " 
+# get_proxies_fun is optional, set if you want to use a proxy, this example use data5u proxy, 
+# the website is :http://www.data5u.com/api/doc-dynamic.html 
 shop_list_around = dianping.get_around("1", "5724615", 2000, 1, get_proxies_fun=lambda: proxies_dora.get_data5u_proxies("your data5u api key")) # args: city id, shop id, max distance, page index
 '''
 shop_list_around is like this:
