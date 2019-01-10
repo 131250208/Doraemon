@@ -18,17 +18,17 @@ def get_around(city_id, shop_id_center, dis, page, get_proxies_fun=None):
     [
       {
         "img_src": "https://img.meituan.net/msmerchant/2e5787325ba4579ec2e2e3f45038ade1149446.jpg%40340w_255h_1e_1c_1l%7Cwatermark%3D1%26%26r%3D1%26p%3D9%26x%3D2%26y%3D2%26relative%3D1%26o%3D20",
-        "title": "\u901f\u5ea6\u62ab\u8428(\u534e\u8d38\u57ce\u5e97)",
+        "title": "速度披萨(华贸城店)",
         "star_level": 4.5,
         "review_num": 30,
         "mean_price": 89,
-        "cat": "\u897f\u9910",
-        "region": "\u5317\u82d1\u5bb6\u56ed",
-        "addr": "\u6e05\u82d1\u8def13\u53f7",
+        "cat": "西餐",
+        "region": "北苑家园",
+        "addr": "清苑路13号",
         "rec_dish": [
-          "\u9ed1\u829d\u9ebb\u6c99\u62c9",
-          "\u87f9\u8089\u610f\u9762",
-          "\u706b\u817f\u69b4\u83b2\u62ab\u8428\u53cc\u62fc"
+          "黑芝麻沙拉",
+          "蟹肉意面",
+          "火腿榴莲披萨双拼"
         ],
         "score": {
           "taste": 8.5,
@@ -225,9 +225,9 @@ if __name__ == "__main__":
     # shop_list = search_shops("2", "4s店", 1)
     # print(shop_list)
 
-    # import json
-    # shop_list = get_around("2", "5724615", 2000, 2)
-    # print(json.dumps(shop_list, indent=2))
+    import json
+    shop_list = get_around("2", "5724615", 2000, 2)
+    print(json.dumps(shop_list, indent=2, ensure_ascii=False))
 
     # get the map to decrypt
     # url = "https://s3plus.meituan.net/v1/mss_0a06a471f9514fc79c981b5466f56b91/svgtextcss/8d42683a9b290707dcf319a5920cff72.css"

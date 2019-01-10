@@ -234,28 +234,28 @@ shop_list = dianping.search_shops("2", "4s店", 1, get_proxies_fun=lambda: proxi
 shop_list_around = dianping.get_around("1", "5724615", 2000, 1, get_proxies_fun=lambda: proxies_dora.get_data5u_proxies("your data5u api key")) # args: city id, shop id, max distance, page index
 '''
 shop_list_around is like this:
-[
-  {
-    "img_src": "https://img.meituan.net/msmerchant/2e5787325ba4579ec2e2e3f45038ade1149446.jpg%40340w_255h_1e_1c_1l%7Cwatermark%3D1%26%26r%3D1%26p%3D9%26x%3D2%26y%3D2%26relative%3D1%26o%3D20",
-    "title": "\u901f\u5ea6\u62ab\u8428(\u534e\u8d38\u57ce\u5e97)",
-    "star_level": 4.5,
-    "review_num": 30,
-    "mean_price": 89,
-    "cat": "\u897f\u9910",
-    "region": "\u5317\u82d1\u5bb6\u56ed",
-    "addr": "\u6e05\u82d1\u8def13\u53f7",
-    "rec_dish": [
-      "\u9ed1\u829d\u9ebb\u6c99\u62c9",
-      "\u87f9\u8089\u610f\u9762",
-      "\u706b\u817f\u69b4\u83b2\u62ab\u8428\u53cc\u62fc"
-    ],
-    "score": {
-      "taste": 8.5,
-      "env": 8.4,
-      "service": 8.4
-    }
-  },
-]
+    [
+      {
+        "img_src": "https://img.meituan.net/msmerchant/2e5787325ba4579ec2e2e3f45038ade1149446.jpg%40340w_255h_1e_1c_1l%7Cwatermark%3D1%26%26r%3D1%26p%3D9%26x%3D2%26y%3D2%26relative%3D1%26o%3D20",
+        "title": "速度披萨(华贸城店)",
+        "star_level": 4.5,
+        "review_num": 30,
+        "mean_price": 89,
+        "cat": "西餐",
+        "region": "北苑家园",
+        "addr": "清苑路13号",
+        "rec_dish": [
+          "黑芝麻沙拉",
+          "蟹肉意面",
+          "火腿榴莲披萨双拼"
+        ],
+        "score": {
+          "taste": 8.5,
+          "env": 8.4,
+          "service": 8.4
+        }
+      },
+    ]
 '''
 
 ```
