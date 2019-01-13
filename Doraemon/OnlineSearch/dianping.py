@@ -60,7 +60,7 @@ def get_around(city_id, shop_id_center, dis, page, get_proxies_fun=None):
     if "没有找到" in html:
         logging.warning("can not find any shops...")
         return None
-    
+
     url = "https:{}".format(re.search('href="(//s3plus\.meituan\.net.*?\.css)">', html).group(1))
     map_code2char = get_map_code2char(url)
     it = re.finditer('<span class="([0-9a-zA-Z]*?)"></span>', html)
