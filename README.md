@@ -57,8 +57,8 @@ pool = [
 proxies_dora.set_pool(pool) # set a self-defined proxy pool
 proxies3 = proxies_dora.get_proxies_fr_pool() # get a proxies dict from the pool
 
-loc_info1 = proxies_dora.loc_proxies_ipv4(proxies1) # get location info of a given proxy, ipv4 only
-loc_info2 = proxies_dora.detail_proxies_ipv6(proxies2) # get coarse-grained location info of a given proxy, for both ipv4 and ipv6
+loc_info1 = proxies_dora.loc_proxy_ipv4(proxies1) # get location info of a given proxy, ipv4 only
+loc_info2 = proxies_dora.loc_proxy(proxies2) # get location info of a given proxy, for both ipv4 and ipv6
 
 ```
 ### 3. User-friendly Chrome
