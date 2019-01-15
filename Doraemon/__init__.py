@@ -7,3 +7,4 @@ from Doraemon.Requests import proxies_dora
 from Doraemon.OnlineSearch import google_KG
 from Doraemon.OnlineSearch import google_translator
 from Doraemon.OnlineSearch import dianping
+from Doraemon.OnlineSearch import whois

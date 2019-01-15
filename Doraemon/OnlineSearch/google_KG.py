@@ -22,7 +22,6 @@ def quote(queryStr):
 
 
 def google_search(queryStr, get_proxies_fun):
-    queryStr = quote(queryStr)
     url = 'https://www.google.com/search?biw=1920&safe=active&hl=en&q=%s&oq=%s' % (queryStr, queryStr)
 
     response = requests_dora.try_best_2_get(url, headers=requests_dora.get_default_headers(), invoked_by="google_search", get_proxies_fun=get_proxies_fun)
@@ -82,11 +81,6 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
     if des is not None:
         des_span = des.parent.select_one("span")
         des_info = des_span.text if des_span is not None else ""
-
-    # identify whether it is a organization
-    pattern_org = "(%s)" % "|".join(ORG_KEYWORDS)
-    se = re.search(pattern_org, enti_type, flags=re.I)
-    is_org = False if se is None else True
 
     # extract attributes
     attr_tags = soup.select("div.Z1hOCe")
@@ -159,7 +153,7 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
         time.sleep(wait * random.random())
 
     rel_org_name_list = [org_name for org_name in rel_org_name_set if len(org_name) > 1]
-    return {"query_str": query_str, "name": enti_name, "type": enti_type, "is_org": is_org,
+    return {"query_str": query_str, "name": enti_name, "type": enti_type,
             "des": des_info, "attributes": attr_dict, "rel_org": rel_org_name_list}
 
 
@@ -172,7 +166,7 @@ if __name__ == "__main__":
         return proxies
 
     # Association of Public and Land‑grant ...
-    res = get_entity("Roubaix", get_proxies_fun=get_proxies)
+    res = get_entity("阿里巴巴", get_proxies_fun=get_proxies)
     print(res)
 
 

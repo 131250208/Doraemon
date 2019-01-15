@@ -57,6 +57,10 @@ def get_around(city_id, shop_id_center, dis, page, get_proxies_fun=None):
 
     # decrypt
     html = res.text
+    if "没有找到" in html:
+        logging.warning("can not find any shops...")
+        return None
+
     url = "https:{}".format(re.search('href="(//s3plus\.meituan\.net.*?\.css)">', html).group(1))
     map_code2char = get_map_code2char(url)
     it = re.finditer('<span class="([0-9a-zA-Z]*?)"></span>', html)
@@ -153,11 +157,15 @@ def search_shops(city_id, keyword, page, get_proxies_fun=None):
         if res.status_code == 200:
             break
         random.seed(time.time())
-        sleep_time = 3 + 7 * random.random()
+        sleep_time = 5 + 10 * random.random()
         logging.warning("failde ... try again in {} s...".format(sleep_time))
         time.sleep(sleep_time)
 
     html = res.text
+    if "没有找到" in html:
+        logging.warning("can not find any shops...")
+        return None
+
     soup = BeautifulSoup(html, "lxml")
     li_list = soup.select("div.shop-list > ul > li")
 
@@ -222,12 +230,12 @@ def get_map_code2char(url):
 
 
 if __name__ == "__main__":
-    # shop_list = search_shops("2", "4s店", 1)
-    # print(shop_list)
+    shop_list = search_shops("2", "4s店", 1)
+    print(shop_list)
 
-    import json
-    shop_list = get_around("2", "5724615", 2000, 2)
-    print(json.dumps(shop_list, indent=2, ensure_ascii=False))
+    # import json
+    # shop_list = get_around("2", "5724615", 2000, 2)
+    # print(json.dumps(shop_list, indent=2, ensure_ascii=False))
 
     # get the map to decrypt
     # url = "https://s3plus.meituan.net/v1/mss_0a06a471f9514fc79c981b5466f56b91/svgtextcss/8d42683a9b290707dcf319a5920cff72.css"
