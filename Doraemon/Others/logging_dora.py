@@ -1,6 +1,5 @@
 import logging
 
-
 class Logger:
     def __init__(self, path, clevel=logging.DEBUG, Flevel=logging.DEBUG):
         self.path = path
