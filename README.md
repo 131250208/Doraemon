@@ -1,5 +1,5 @@
 
-Doraemon is a toolkit including frequently used code. It is still in development...
+Doraemon is a toolkit including frequently used code for crawlers. It is still in development...
 # Installation
 ```bash
 pip install Doraemon
@@ -13,7 +13,7 @@ pip install Doraemon
 3. User-friendly Chrome
 ***
 
-**OnlineSearch**
+**Crawlers**
 ***
 1. Google Knowledge Graph
 2. Google Translator
@@ -36,7 +36,7 @@ def get_proxies():
                "https": "http://%s" % proxy_str, }
     return proxies
 
-# max_times, get_proxies_fun, and invoked_by is optional, other parameters are the same as the requests.get() and requests.post()
+# max_times, get_proxies_fun, and invoked_by are optional parameters, others are the same as the requests.get() and requests.post()
 res1 = requests_dora.try_best_2_get(url, max_times=5, get_proxies_fun=get_proxies, invoked_by="parent_fun_name") 
 res2 = requests_dora.try_best_2_post(url, max_times=5, get_proxies_fun=get_proxies)
 print(res1.status_code)
@@ -76,7 +76,8 @@ chrome.get(baidu_url)
 print(chrome.page_source)
 ```
 
-### 1. Google Knowledge Graph
+## Crawlers
+### 1. Google Knowledge Graph [invalid]
 ```python
 from Doraemon import google_KG
 
@@ -221,7 +222,7 @@ print(res2)
 中文(繁体): zh-TW
 中文(简体): zh-CN
 ```
-### 3. Dianping
+### 3. Dianping [partly invalid: character decoding]
 ```python
 from Doraemon import dianping, proxies_dora
 import json
