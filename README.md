@@ -1,12 +1,8 @@
 
-Doraemon is a toolkit including frequently used code for crawlers. It is still in development...
-# Installation
-```bash
-pip install Doraemon
-```
+**Doraemon is a set of crawlers.**
 
 # Checklist
-**Requests**
+**Tools**
 ***
 1. Robust Requests
 2. Proxy Kit
@@ -15,9 +11,12 @@ pip install Doraemon
 
 **Crawlers**
 ***
-1. Google Knowledge Graph
+1. Google Knowledge Graph [Invalid]
 2. Google Translator
-3. Dianping # 大众点评
+3. Dianping [Invalid] # 大众点评 
+4. QQ music lyrics
+5. whois
+6. NetEase music comments
 ***
 
 # Example
@@ -261,7 +260,32 @@ shop_list_around is like this:
       },
     ]
 '''
-
 ```
 
+### 4. QQ music lyrics
+```python
+# crawl songs by areas
+area_list = ["港台", "内地"] # {'全部': -100, '内地': 200, '港台': 2, '欧美': 5, '日本': 4, '韩国': 3, '其他': 6}
+save_path = "./qq_music_songs_by_area"
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+crawl_songs(area_list, save_path)
+```
 
+### 5. whois
+```python
+    ip_list = ["154.17.24.36"]
+    ip_failed = []
+    for ip in pyprind.prog_bar(ip_list):
+        whois = get_org_name_by_registration_db(ip)
+        print(whois)
+        if whois is None:
+            ip_failed.append(ip)
+    print("failed: {}".format(ip_failed))
+```
+
+### 6. NetEase music comments 
+run under `netease_music`
+```bash
+scrapy crawl comments
+```
