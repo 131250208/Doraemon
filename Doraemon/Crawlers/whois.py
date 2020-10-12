@@ -1,7 +1,7 @@
 from Doraemon import requests_dora
 import json
 import re
-
+import pyprind
 
 def get_org_name_by_ripe(ip):
     api = "https://rest.db.ripe.net/search.json?source=ripe&query-string=%s" % ip # &source=apnic-grs
@@ -138,12 +138,11 @@ def get_org_name_by_registration_db(ip):
 
 
 if __name__ == "__main__":
-    ip_list = list(json.load(open("./probes_ripe.json", "r")).keys())
-    import pyprind
+    ip_list = ["154.17.24.36"]
     ip_failed = []
     for ip in pyprind.prog_bar(ip_list):
         whois = get_org_name_by_registration_db(ip)
         print(whois)
         if whois is None:
             ip_failed.append(ip)
-    print(ip_failed)
+    print("failed: {}".format(ip_failed))
