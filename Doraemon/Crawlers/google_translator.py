@@ -6,7 +6,7 @@ import json
 import logging
 import html
 import time
-import pyprind
+from tqdm import tqdm
 from Doraemon.Requests import requests_dora
 
 '''reference: language 2 code
@@ -184,7 +184,7 @@ def trans_long(ori_text, sl="auto", tl="en", get_proxies_fun=None):
         return ori_text
 
     en_text = ""
-    for sni in pyprind.prog_bar(snippets):
+    for sni in tqdm(snippets):
         en_text += trans(sni, sl, tl, get_proxies_fun)
 
     return en_text
@@ -203,4 +203,3 @@ if __name__ == "__main__":
 
     res = trans("中华人民共和国", get_proxies_fun=get_proxy)
     print(res)
-    pass

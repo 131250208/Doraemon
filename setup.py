@@ -15,7 +15,7 @@ from setuptools import find_packages, setup, Command
 NAME = 'Doraemon'
 DESCRIPTION = 'A toolkit of Doraemon'
 URL = 'https://github.com/131250208/Doraemon'
-EMAIL = 'wychengpublic@163.com'
+EMAIL = 'wangyucheng@iie.ac.cn'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
 VERSION = 2.4
@@ -25,7 +25,9 @@ REQUIRED = [
     "selenium",
     "requests",
     "bs4",
-    "pyprind",
+    "aiohttp",
+    "tqdm",
+    "rsa",
     "PyExecJS",
 ]
 

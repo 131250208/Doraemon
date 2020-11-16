@@ -4,7 +4,7 @@ import math
 import os
 import re
 from urllib import parse
-import pyprind
+from tqdm import tqdm
 from Doraemon.Requests import requests_dora
 
 KEY_LYRIC = "lyric"
@@ -63,7 +63,7 @@ def get_singer_list(area_id):
     singer_list_total.extend(singer_list)
 
     page_max = int(math.ceil(total / 80))
-    for i in pyprind.prog_bar(range(1, page_max), title = "getting singer list at area {}".format(area_id)):
+    for i in tqdm(range(1, page_max), desc = "getting singer list at area {}".format(area_id)):
         page_ind = i + 1
         singer_list, total, _ = get_singer_list_page(area_id, page_ind)
         singer_list_total.extend(singer_list)
@@ -178,7 +178,7 @@ def get_lyric(song):
         return {}, []
 
 
-def crawl_song_list(singer):
+def crawl_song_list(singer, area):
     singer_mid = singer[KEY_SINGER_MID]
     singer_name = singer[KEY_SINGER_NAME]
     song_list_total = []
@@ -186,22 +186,18 @@ def crawl_song_list(singer):
     song_list_total.extend(song_list)
 
     p_ind_list = range(30, total, 30)
-    bar1 = pyprind.ProgBar(len(p_ind_list), title="getting song list of {}...".format(singer_name))
-    for i in p_ind_list:
+    for i in tqdm(p_ind_list, desc="getting song list of {}@{}...".format(singer_name, area)):
         song_list, total = crawl_song_list_page(singer_mid, i)
         song_list_total.extend(song_list)
-        bar1.update()
 
-    bar2 = pyprind.ProgBar(len(song_list_total), title="getting the lyric for each song of {}...".format(singer_name))
-    for song in song_list_total:
+    for song in tqdm(song_list_total, desc="getting the lyrics of the songs of {}@{}...".format(singer_name, area)):
         contributors, lyric = get_lyric(song)
         song[KEY_CONTRIBUTORS] = contributors
         song[KEY_LYRIC] = lyric
         song[KEY_SINGER_NAME] = singer_name
-        bar2.update()
-        # print(song)
 
     return song_list_total
+
 
 def crawl_songs(area_list, save_path):
     # get progress
@@ -218,16 +214,14 @@ def crawl_songs(area_list, save_path):
 
     for area in area_list:
         singer_list = get_singer_list(area_2_id[area])
-        bar = pyprind.ProgBar(len(singer_list), title="process of crawling songs of singers of {}".format(area))
-        for singer in pyprind.prog_bar(singer_list):
+        for singer in singer_list:
             singer_name = singer[KEY_SINGER_NAME]
             singer_id = singer[KEY_SINGER_ID]
             if singer_id in singer_id_done:
                 continue
-            song_list = crawl_song_list(singer)
+            song_list = crawl_song_list(singer, area)
             json.dump(song_list,
                       open("%s/song_list_%s_%s.json" % (save_path, singer_name, singer_id), "w", encoding="utf-8"), ensure_ascii = False)
-            bar.update()
 
 if __name__ == "__main__":
     # # get singer list
