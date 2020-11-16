@@ -27,7 +27,7 @@ class Parser(threading.Thread):
                 if fail_num < self.max_fail_num:
                     self._queue.put(domain_name)
                 else:
-                    domain_name2ip[domain_name] = None
+                    self.domain_name2ip[domain_name] = None
 
                 self.domain_name2fail_num[domain_name] = fail_num + 1
                 sys.stdout.write(
