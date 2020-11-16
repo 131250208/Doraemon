@@ -176,7 +176,8 @@ def extract_org_names_no_limited(ip_list):
 
 
 if __name__ == "__main__":
-    ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
+    # ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
+    ip_list = ["54.83.30.211"]
     # # friendly
     # res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
 

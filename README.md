@@ -263,22 +263,48 @@ shop_list_around is like this:
 
 ### 4. QQ music lyrics
 ```python
-# crawl songs by areas
+import os
+from Doraemon import qq_music_crawler_by_album as qm_album, qq_music_crawler_by_area as qm_area
+# crawl lyrics of songs in specific areas
 area_list = ["港台", "内地"] # {'全部': -100, '内地': 200, '港台': 2, '欧美': 5, '日本': 4, '韩国': 3, '其他': 6}
 save_path = "./qq_music_songs_by_area"
 if not os.path.exists(save_path):
     os.makedirs(save_path)
-crawl_songs(area_list, save_path)
+qm_area.crawl_songs(area_list, save_path)
+
+# crawl lyrics by albums
+import json
+from tqdm import tqdm
+
+save_path = "./qq_music_songs_by_album"
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
+for sin in range(0, 7050, 30):
+    ein = sin + 29
+    album_list = qm_album.get_album_list(sin, ein) # get 30 albums
+
+    for album in album_list:
+        dissname = album["dissname"]
+        song_list = qm_album.get_song_list(album["dissid"])
+        chunk = []
+        for song in tqdm(song_list, desc = "getting songs in {}".format(dissname)):
+            contributors, lyric = qm_album.get_lyric(song)
+            song["lyric"] = lyric
+            chunk.append(song)
+
+        json.dump(chunk, open("{}/lyric_{}.json".format(save_path, dissname), "w", encoding = "utf-8"), ensure_ascii = False)
 ```
 
 ### 5. whois
 ```python
+from Doraemon import whois
 ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
 # # friendly
-# res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
+# res = whois.extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
 
 # no limited
-res = extract_org_names_no_limited(ip_list)
+res = whois.extract_org_names_no_limited(ip_list)
 print(res)
 ```
 
@@ -286,4 +312,14 @@ print(res)
 run under `netease_music`
 ```bash
 scrapy crawl comments
+```
+
+### 6. domain2ip
+```python
+from Doraemon import domain2ip
+threads = 100
+max_fail_num = 0
+domain_name2ip = {} # results
+url_list = ["https://www.baidu.com", "https://www.qq.com"]
+domain2ip.gethostbyname_fast(url_list, domain_name2ip, threads, max_fail_num)
 ```
