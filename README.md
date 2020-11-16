@@ -274,11 +274,12 @@ crawl_songs(area_list, save_path)
 ### 5. whois
 ```python
 ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
-# friendly
-res = get_org_name_by_reg_db_friendly(ip_list, block_size = 100, sleep = 2)
+# # friendly
+# res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
+
 # no limited
-res = get_org_name_by_registration_db_for_list(ip_list)
-print(len(res))
+res = extract_org_names_no_limited(ip_list)
+print(res)
 ```
 
 ### 6. NetEase music comments 

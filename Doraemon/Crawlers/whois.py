@@ -3,10 +3,12 @@ import re
 import asyncio
 import aiohttp
 import time
-from tqdm import tqdm
+from tqdm.asyncio import tqdm
+import nest_asyncio
+nest_asyncio.apply()
 
 
-async def get(url):
+async def _async_get(url):
     session = aiohttp.ClientSession()
     response = await session.get(url)
     result = await response.text()
@@ -14,9 +16,9 @@ async def get(url):
     return result
 
 
-async def get_org_name_by_ripe(ip):
+async def _get_org_name_by_ripe(ip):
     api = "https://rest.db.ripe.net/search.json?source=ripe&query-string=%s" % ip # &source=apnic-grs
-    res = await get(api)
+    res = await _async_get(api)
 
     try:
         json_res = json.loads(res)
@@ -42,15 +44,15 @@ async def get_org_name_by_ripe(ip):
         return None
 
 
-async def get_org_name_by_arin(ip):
+async def _get_org_name_by_arin(ip):
     api = "https://whois.arin.net/rest/ip/%s.json" % ip
-    res = await get(api)
+    res = await _async_get(api)
 
     handle_json = json.loads(res)
     handle = handle_json["net"]["handle"]["$"]
 
     api2 = "https://whois.arin.net/rest/net/%s/pft.json?s=%s" % (handle, ip)
-    res = await get(api2)
+    res = await _async_get(api2)
 
     name = None
     start_address = None
@@ -77,9 +79,9 @@ async def get_org_name_by_arin(ip):
         }
 
 
-async def get_org_name_by_lacnic(ip):
+async def _get_org_name_by_lacnic(ip):
     api = "https://rdap.registro.br/ip/%s" % ip
-    res = await get(api)
+    res = await _async_get(api)
 
     json_whois = json.loads(res)
 
@@ -94,9 +96,9 @@ async def get_org_name_by_lacnic(ip):
     return None
 
 
-async def get_org_name_by_apnic(ip):
+async def _get_org_name_by_apnic(ip):
     api = "http://wq.apnic.net/query?searchtext=%s" % ip
-    res = await get(api)
+    res = await _async_get(api)
 
     json_whois = json.loads(res)
     try:
@@ -115,18 +117,18 @@ async def get_org_name_by_apnic(ip):
     return None
 
 
-async def get_org_name_by_registration_db(ip):
-    org = await get_org_name_by_arin(ip)
+async def _get_org_name(ip):
+    org = await _get_org_name_by_arin(ip)
     # Asia Pacific Network Information Centre, South Brisbane #
 
     if org is not None and "Asia Pacific Network Information Centre" in org["org_name"]:
-        org = await get_org_name_by_apnic(ip)
+        org = await _get_org_name_by_apnic(ip)
 
     elif org is not None and "RIPE Network Coordination Centre" in org["org_name"]:
-        org = await get_org_name_by_ripe(ip)
+        org = await _get_org_name_by_ripe(ip)
 
     elif org is not None and "Latin American and Caribbean IP address Regional Registry" in org["org_name"]:
-        org = await get_org_name_by_lacnic(ip)
+        org = await _get_org_name_by_lacnic(ip)
 
     elif org is None:
         return None
@@ -136,30 +138,48 @@ async def get_org_name_by_registration_db(ip):
     return org
 
 
-def get_org_name_by_registration_db_for_list(ip_list):
-    t1 = time.time()
-
+async def _get_org_names_for_list(ip_list, desc = "extracting org names"):
     # asyncio
-    task_list = [get_org_name_by_registration_db(ip) for ip in ip_list]
-    loop = asyncio.get_event_loop()
-    finished_tasks = loop.run_until_complete(asyncio.wait(task_list))
-    results = [t.result() for t in finished_tasks[0]]
+    task_list = [_get_org_name(ip) for ip in ip_list]
 
-    t2 = time.time()
-    print("finished in {:.2} s.".format(t2 - t1))
+    # # if use this code, rm the async and invoke this function directly (no progress)
+    # t1 = time.time()
+    # loop = asyncio.get_event_loop()
+    # finished_tasks = loop.run_until_complete(asyncio.wait(task_list))
+    # results = [t.result() for t in finished_tasks[0]]
+    # loop.close()
+    # t2 = time.time()
+    # print("finished in {:.2} s.".format(t2 - t1))
+
+    results = [await f for f in tqdm(asyncio.as_completed(task_list), desc = desc, total = len(task_list))]
     return results
 
 
-def get_org_name_by_reg_db_friendly(ip_list, block_size = 100, sleep = 2):
+def extract_org_names_friendly(ip_list, block_size = 100, sleep = 2):
     total_res = []
-    for start_id in tqdm(range(0, len(ip_list), block_size)):
+    loop = asyncio.get_event_loop()
+    for start_id in range(0, len(ip_list), block_size):
         block = ip_list[start_id:(start_id+block_size)]
-        total_res.extend(get_org_name_by_registration_db_for_list(block))
+        desc = "extracting org names of ip block {}".format(start_id // block_size)
+        results = loop.run_until_complete(_get_org_names_for_list(block, desc = desc))
+        total_res.extend(results)
         time.sleep(sleep)
+    loop.close()
     return total_res
+
+
+def extract_org_names_no_limited(ip_list):
+    loop = asyncio.get_event_loop()
+    results = loop.run_until_complete(_get_org_names_for_list(ip_list))
+    loop.close()
+    return results
 
 
 if __name__ == "__main__":
     ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
-    res = get_org_name_by_reg_db_friendly(ip_list)
-    print(len(res))
+    # # friendly
+    # res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
+
+    # no limited
+    res = extract_org_names_no_limited(ip_list)
+    print(res)
