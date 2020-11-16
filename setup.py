@@ -13,12 +13,12 @@ from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = 'Doraemon'
-DESCRIPTION = 'A toolkit of Doraemon'
+DESCRIPTION = 'The pocket of Doraemon: many crawlers'
 URL = 'https://github.com/131250208/Doraemon'
 EMAIL = 'wangyucheng@iie.ac.cn'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = 2.4
+VERSION = 3.1
 
 # What packages are required for this module to be executed?
 REQUIRED = [
