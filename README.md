@@ -307,7 +307,7 @@ run under `netease_music`
 scrapy crawl comments
 ```
 
-### 6. domain2ip
+### 7. domain2ip
 ```python
 from Doraemon import domain2ip
 threads = 100
