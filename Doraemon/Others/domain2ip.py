@@ -19,7 +19,7 @@ class Parser(threading.Thread):
             try:
                 ip = socket.gethostbyname(domain_name)
                 self.domain_name2ip[domain_name] = ip
-                sys.stdout.write("\r[+] {} -> {} ---------------------------".format(domain_name, ip))
+                sys.stdout.write("\r{} in queue, {} -> {} ---------------------------".format(self._queue.qsize(), domain_name, ip))
                 sys.stdout.flush()
 
             except Exception as e:
@@ -31,7 +31,7 @@ class Parser(threading.Thread):
 
                 self.domain_name2fail_num[domain_name] = fail_num + 1
                 sys.stdout.write(
-                    "\r[-] {} failed: {}/{} ----------------------".format(domain_name, fail_num, self.max_fail_num))
+                    "\r{} in queue, {} failed: {}/{} ----------------------".format(self._queue.qsize(), domain_name, fail_num, self.max_fail_num))
                 sys.stdout.flush()
 
 
