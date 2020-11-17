@@ -164,23 +164,23 @@ def extract_org_names_friendly(ip_list, block_size = 100, sleep = 2):
         results = loop.run_until_complete(_get_org_names_for_list(block, desc = desc))
         total_res.extend(results)
         time.sleep(sleep)
-    loop.close()
+    # loop.close()
     return total_res
 
 
 def extract_org_names_no_limited(ip_list):
     loop = asyncio.get_event_loop()
     results = loop.run_until_complete(_get_org_names_for_list(ip_list))
-    loop.close()
+    # loop.close()
     return results
 
 
 if __name__ == "__main__":
     # ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
-    ip_list = ["54.83.30.211"]
+    ip_list = ["54.83.30.211"] * 4
     # # friendly
     # res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
 
     # no limited
-    res = extract_org_names_no_limited(ip_list)
+    res = extract_org_names_friendly(ip_list)
     print(res)
