@@ -15,7 +15,6 @@ async def _async_get(url):
     await session.close()
     return result
 
-
 async def _get_org_name_by_ripe(ip):
     api = "https://rest.db.ripe.net/search.json?source=ripe&query-string=%s" % ip # &source=apnic-grs
     res = await _async_get(api)
@@ -48,60 +47,64 @@ async def _get_org_name_by_arin(ip):
     api = "https://whois.arin.net/rest/ip/%s.json" % ip
     res = await _async_get(api)
 
-    handle_json = json.loads(res)
-    handle = handle_json["net"]["handle"]["$"]
+    try:
+        handle_json = json.loads(res)
+        handle = handle_json["net"]["handle"]["$"]
 
-    api2 = "https://whois.arin.net/rest/net/%s/pft.json?s=%s" % (handle, ip)
-    res = await _async_get(api2)
+        api2 = "https://whois.arin.net/rest/net/%s/pft.json?s=%s" % (handle, ip)
+        res = await _async_get(api2)
 
-    name = None
-    start_address = None
-    end_address = None
-    json_whois = json.loads(res)["ns4:pft"]
+        name = None
+        start_address = None
+        end_address = None
+        json_whois = json.loads(res)["ns4:pft"]
 
-    if "org" in json_whois:
-        org = json_whois["org"]
-        name = org["name"]["$"]
-    if "customer" in json_whois:
-        customer = json_whois["customer"]
-        name = customer["name"]["$"]
+        if "org" in json_whois:
+            org = json_whois["org"]
+            name = org["name"]["$"]
+        if "customer" in json_whois:
+            customer = json_whois["customer"]
+            name = customer["name"]["$"]
 
-    if "net" in json_whois:
-        start_address = json_whois["net"]["startAddress"]["$"]
-        end_address = json_whois["net"]["endAddress"]["$"]
+        if "net" in json_whois:
+            start_address = json_whois["net"]["startAddress"]["$"]
+            end_address = json_whois["net"]["endAddress"]["$"]
 
-    return {
+        return {
             "ip": ip,
             "start_address": start_address,
             "end_address": end_address,
             "org_name": name,
             "from": "ARIN",
         }
+    except Exception as e:
+        return None
 
 
 async def _get_org_name_by_lacnic(ip):
     api = "https://rdap.registro.br/ip/%s" % ip
     res = await _async_get(api)
 
-    json_whois = json.loads(res)
+    try:
+        json_whois = json.loads(res)
 
-    list_vcard = json_whois["entities"][0]["vcardArray"][1]
-    for c in list_vcard:
-        if c[0] == "fn":
-            whois = c[3]
-            whois["ip"] = ip
-            whois["from"] = "LACNIC"
-            return whois
-
-    return None
+        list_vcard = json_whois["entities"][0]["vcardArray"][1]
+        for c in list_vcard:
+            if c[0] == "fn":
+                whois = c[3]
+                whois["ip"] = ip
+                whois["from"] = "LACNIC"
+                return whois
+    except Exception as e:
+        return None
 
 
 async def _get_org_name_by_apnic(ip):
     api = "http://wq.apnic.net/query?searchtext=%s" % ip
     res = await _async_get(api)
 
-    json_whois = json.loads(res)
     try:
+        json_whois = json.loads(res)
         for entry in json_whois:
             if entry["type"] == "object" and entry["objectType"] == "inetnum":
                 attrs = entry["attributes"]
@@ -112,9 +115,7 @@ async def _get_org_name_by_apnic(ip):
                         whois["from"] = "APNIC"
                         return whois
     except Exception:
-        pass
-
-    return None
+        return None
 
 
 async def _get_org_name(ip):
