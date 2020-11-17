@@ -1,22 +1,15 @@
 
 # Doraemon
-**Doraemon is a set of crawlers.**
+**Doraemon is a tool kit.**
 
-**Tools**
 ***
-1. Robust Requests
-2. Proxy Kit
-3. User-friendly Chrome
-***
-
-**Crawlers**
-***
-1. Google Knowledge Graph [Invalid]
+1. Google Knowledge Graph [Deprecated]
 2. Google Translator
-3. Dianping [Invalid] # 大众点评 
+3. Dianping [Deprecated] # 大众点评 
 4. QQ music lyrics
 5. whois
 6. NetEase music comments
+7. Parse domain name to IP (in batch)
 ***
 
 ## Tools
@@ -75,7 +68,7 @@ print(chrome.page_source)
 ```
 
 ## Crawlers
-### 1. Google Knowledge Graph [invalid]
+### 1. Google Knowledge Graph [Deprecated]
 ```python
 from Doraemon import google_KG
 
@@ -220,7 +213,7 @@ print(res2)
 中文(繁体): zh-TW
 中文(简体): zh-CN
 ```
-### 3. Dianping [partly invalid: character decoding]
+### 3. Dianping [Deprecated: character decoding]
 ```python
 from Doraemon import dianping, proxies_dora
 import json
@@ -314,7 +307,7 @@ run under `netease_music`
 scrapy crawl comments
 ```
 
-### 6. domain2ip
+### 7. domain2ip
 ```python
 from Doraemon import domain2ip
 threads = 100
