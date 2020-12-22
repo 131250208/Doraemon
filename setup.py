@@ -31,6 +31,7 @@ REQUIRED = [
     "rsa",
     "webdriver-manager",
     "PyExecJS",
+    "nest-asyncio",
 ]
 
 # What packages are optional?
