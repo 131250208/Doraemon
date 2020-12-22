@@ -1,6 +1,7 @@
 import time
 import base64
-from Doraemon import ext_apis, chrome_dora
+from Doraemon.Others import ext_apis
+from Doraemon.Requests import chrome_dora
 import os
 from tqdm import tqdm
 import logging
