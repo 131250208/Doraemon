@@ -1,11 +1,15 @@
+# -*- coding: utf-8 -*-
+
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 
 
 class MyChrome(webdriver.Chrome):
-    def __init__(self, headless=False, proxy=None, no_images=True):
+    def __init__(self, headless=False, proxy=None, no_images=False, user_agent=None, cookie=None):
         '''
         :param headless: headless or not
         :param proxy: e.g. 127.0.0.1:1080
@@ -13,13 +17,17 @@ class MyChrome(webdriver.Chrome):
         '''
         chrome_options = webdriver.ChromeOptions()
         if proxy is not None:
-            chrome_options.add_argument('--proxy-server=%s' % proxy)
+            chrome_options.add_argument('--proxy-server={}'.format(proxy))
         if headless:
             chrome_options.add_argument("--headless")
         if no_images:
             prefs = {'profile.managed_default_content_settings.images': 2}
             chrome_options.add_experimental_option('prefs', prefs)
-        super(MyChrome, self).__init__(options=chrome_options)
+        if user_agent is not None:
+            chrome_options.add_argument('--user-agent={}'.format(user_agent))
+
+        super(MyChrome, self).__init__(executable_path=ChromeDriverManager().install(),
+                                       options=chrome_options)
 
     def wait_to_get_element(self, css_selector, timeout):
         while True:
@@ -28,9 +36,17 @@ class MyChrome(webdriver.Chrome):
                     ec.visibility_of_element_located((By.CSS_SELECTOR, css_selector)))
                 break
             except Exception as e:
-                print(e)
+                print("page loading timeout! wait {} more seconds...".format(timeout))
                 continue
         return element
+
+    def screenshot_current_page(self, save_path):
+        height = self.execute_script("return document.scrollingElement.scrollHeight;")
+        width = self.execute_script("return document.scrollingElement.scrollWidth;")
+        self.set_window_size(width, height)
+        time.sleep(1)
+        self.find_element_by_tag_name("body").screenshot(save_path)
+
 
 if __name__ == "__main__":
     proxy = "127.0.0.1:1080"

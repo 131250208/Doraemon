@@ -9,6 +9,7 @@ from Doraemon.Crawlers import google_translator
 from Doraemon.Crawlers import dianping
 from Doraemon.Crawlers import whois
 from Doraemon.Crawlers import qq_music_crawler_by_album, qq_music_crawler_by_area
+from Doraemon.Crawlers import investigation
 
 # Other
-from Doraemon.Others import domain2ip
+from Doraemon.Others import domain2ip, ext_apis
