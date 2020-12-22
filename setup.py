@@ -18,13 +18,14 @@ URL = 'https://github.com/131250208/Doraemon'
 EMAIL = 'wangyucheng@iie.ac.cn'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = 3.9
+VERSION = 4.0
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     "selenium",
     "requests",
     "bs4",
+    "chardet<4.0,>=2.0",
     "aiohttp",
     "tqdm",
     "rsa",
