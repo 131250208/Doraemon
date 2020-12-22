@@ -18,7 +18,7 @@ URL = 'https://github.com/131250208/Doraemon'
 EMAIL = 'wangyucheng@iie.ac.cn'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = 4.1
+VERSION = 4.2
 
 # What packages are required for this module to be executed?
 REQUIRED = [
