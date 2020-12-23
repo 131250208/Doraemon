@@ -11,7 +11,7 @@ import logging
 
 
 class MyChrome(webdriver.Chrome):
-    def __init__(self, headless=False, proxy=None, no_images=False, user_agent=None, cookie=None):
+    def __init__(self, headless=False, proxy=None, no_images=False, user_agent=None, log_level=3):
         '''
         :param headless: headless or not
         :param proxy: e.g. 127.0.0.1:1080
@@ -27,7 +27,7 @@ class MyChrome(webdriver.Chrome):
             chrome_options.add_experimental_option('prefs', prefs)
         if user_agent is not None:
             chrome_options.add_argument('--user-agent={}'.format(user_agent))
-
+        chrome_options.add_argument("log-level={}".format(log_level))
         super(MyChrome, self).__init__(executable_path=ChromeDriverManager().install(),
                                        options=chrome_options)
 
