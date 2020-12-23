@@ -104,7 +104,7 @@ class OrgInvestigator:
                             captcha_code = ext_apis.captcha_rec_3023data(captcha_bs64,
                                                                          format="png",
                                                                          type=5001,
-                                                                         api_key=api_key)
+                                                                         api_key=self.api_key)
                             # input captcha code
                             captcha_inp.send_keys(captcha_code)
                             # click to submit
@@ -127,7 +127,7 @@ class OrgInvestigator:
                     save_path = os.path.join(save_dir, web_name)
                     if not os.path.exists(save_path):
                         os.makedirs(save_path)
-                    save_path = os.path.join(save_path, "{}.jpg".format(key_word))
+                    save_path = os.path.join(save_path, "{}.png".format(key_word))
                     self.chrome.screenshot_current_page(save_path)
 
         if len(captcha_error_info) > 0:

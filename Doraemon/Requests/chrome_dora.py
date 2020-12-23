@@ -6,6 +6,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from selenium.common.exceptions import TimeoutException
+import logging
 
 
 class MyChrome(webdriver.Chrome):
@@ -46,6 +48,14 @@ class MyChrome(webdriver.Chrome):
         self.set_window_size(width, height)
         time.sleep(1)
         self.find_element_by_tag_name("body").screenshot(save_path)
+
+    def get(self, *args, **kwargs):
+        while True:
+            try:
+                res = super(MyChrome, self).get(*args, **kwargs)
+                return res
+            except TimeoutException as te:
+                logging.warning("chrome.get timeout, retry again...")
 
 
 if __name__ == "__main__":
