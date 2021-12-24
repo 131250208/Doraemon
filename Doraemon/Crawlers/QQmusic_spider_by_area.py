@@ -235,7 +235,7 @@ if __name__ == "__main__":
     # print(len(singers))
 
     # crawl songs by areas
-    area_list = ["港台", "内地"] # {'全部': -100, '内地': 200, '港台': 2, '欧美': 5, '日本': 4, '韩国': 3, '其他': 6}
+    area_list = ["港台", "内地"]  # {'全部': -100, '内地': 200, '港台': 2, '欧美': 5, '日本': 4, '韩国': 3, '其他': 6}
     save_path = "./qq_music_songs_by_area"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
