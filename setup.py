@@ -13,20 +13,25 @@ from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = 'Doraemon'
-DESCRIPTION = 'A toolkit of Doraemon'
+DESCRIPTION = 'The pocket of Doraemon: many tools'
 URL = 'https://github.com/131250208/Doraemon'
-EMAIL = 'wychengpublic@163.com'
+EMAIL = 'wangyucheng@iie.ac.cn'
 AUTHOR = 'Andy Wong'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = 2.4
+VERSION = 4.6
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     "selenium",
     "requests",
     "bs4",
-    "pyprind",
+    "chardet<4.0,>=2.0",
+    "aiohttp",
+    "tqdm",
+    "rsa",
+    "webdriver-manager",
     "PyExecJS",
+    "nest-asyncio",
 ]
 
 # What packages are optional?

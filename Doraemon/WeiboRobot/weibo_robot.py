@@ -11,6 +11,7 @@ import rsa
 import logging
 import getopt
 
+
 class WeiboRobot:
 
     def __init__(self, username, password):

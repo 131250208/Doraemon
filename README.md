@@ -1,22 +1,15 @@
 
 # Doraemon
-**Doraemon is a set of crawlers.**
+**Doraemon is a tool kit.**
 
-**Tools**
 ***
-1. Robust Requests
-2. Proxy Kit
-3. User-friendly Chrome
-***
-
-**Crawlers**
-***
-1. Google Knowledge Graph [Invalid]
+1. Google Knowledge Graph [Deprecated]
 2. Google Translator
-3. Dianping [Invalid] # 大众点评 
+3. Dianping [Deprecated] # 大众点评 
 4. QQ music lyrics
 5. whois
 6. NetEase music comments
+7. Parse domain name to IP (in batch)
 ***
 
 ## Tools
@@ -75,7 +68,7 @@ print(chrome.page_source)
 ```
 
 ## Crawlers
-### 1. Google Knowledge Graph [invalid]
+### 1. Google Knowledge Graph [Deprecated]
 ```python
 from Doraemon import google_KG
 
@@ -220,7 +213,7 @@ print(res2)
 中文(繁体): zh-TW
 中文(简体): zh-CN
 ```
-### 3. Dianping [partly invalid: character decoding]
+### 3. Dianping [Deprecated: character decoding]
 ```python
 from Doraemon import dianping, proxies_dora
 import json
@@ -263,28 +256,63 @@ shop_list_around is like this:
 
 ### 4. QQ music lyrics
 ```python
-# crawl songs by areas
+import os
+from Doraemon import qq_music_crawler_by_album as qm_album, qq_music_crawler_by_area as qm_area
+# crawl lyrics of songs in specific areas
 area_list = ["港台", "内地"] # {'全部': -100, '内地': 200, '港台': 2, '欧美': 5, '日本': 4, '韩国': 3, '其他': 6}
 save_path = "./qq_music_songs_by_area"
 if not os.path.exists(save_path):
     os.makedirs(save_path)
-crawl_songs(area_list, save_path)
+qm_area.crawl_songs(area_list, save_path)
+
+# crawl lyrics by albums
+import json
+from tqdm import tqdm
+
+save_path = "./qq_music_songs_by_album"
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
+for sin in range(0, 7050, 30):
+    ein = sin + 29
+    album_list = qm_album.get_album_list(sin, ein) # get 30 albums
+
+    for album in album_list:
+        dissname = album["dissname"]
+        song_list = qm_album.get_song_list(album["dissid"])
+        chunk = []
+        for song in tqdm(song_list, desc = "getting songs in {}".format(dissname)):
+            contributors, lyric = qm_album.get_lyric(song)
+            song["lyric"] = lyric
+            chunk.append(song)
+
+        json.dump(chunk, open("{}/lyric_{}.json".format(save_path, dissname), "w", encoding = "utf-8"), ensure_ascii = False)
 ```
 
 ### 5. whois
 ```python
-ip_list = ["154.17.24.36"]
-ip_failed = []
-for ip in pyprind.prog_bar(ip_list):
-    whois = get_org_name_by_registration_db(ip)
-    print(whois)
-    if whois is None:
-        ip_failed.append(ip)
-print("failed: {}".format(ip_failed))
+from Doraemon import whois
+ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
+# # friendly
+# res = whois.extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
+
+# no limited
+res = whois.extract_org_names_no_limited(ip_list)
+print(res)
 ```
 
 ### 6. NetEase music comments 
 run under `netease_music`
 ```bash
 scrapy crawl comments
+```
+
+### 7. domain2ip
+```python
+from Doraemon import domain2ip
+threads = 100
+max_fail_num = 0
+domain_name2ip = {} # results
+url_list = ["https://www.baidu.com", "https://www.qq.com"]
+domain2ip.gethostbyname_fast(url_list, domain_name2ip, threads, max_fail_num)
 ```

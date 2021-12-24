@@ -1,16 +1,26 @@
-from Doraemon import requests_dora
 import json
 import re
-import pyprind
+import asyncio
+import aiohttp
+import time
+from tqdm.asyncio import tqdm
+import nest_asyncio
+nest_asyncio.apply()
 
-def get_org_name_by_ripe(ip):
+
+async def _async_get(url):
+    session = aiohttp.ClientSession()
+    response = await session.get(url)
+    result = await response.text()
+    await session.close()
+    return result
+
+async def _get_org_name_by_ripe(ip):
     api = "https://rest.db.ripe.net/search.json?source=ripe&query-string=%s" % ip # &source=apnic-grs
-    res = requests_dora.try_best_2_get(api, timeout=30, invoked_by="get_org_name_by_ripe")
-    if res is None or res.status_code != 200:
-        return None
+    res = await _async_get(api)
 
     try:
-        json_res = json.loads(res.text)
+        json_res = json.loads(res)
         list_object = json_res["objects"]["object"]
 
         whois = {"ip": ip, "from": "RIPE NCC"}
@@ -33,74 +43,68 @@ def get_org_name_by_ripe(ip):
         return None
 
 
-def get_org_name_by_arin(ip):
+async def _get_org_name_by_arin(ip):
     api = "https://whois.arin.net/rest/ip/%s.json" % ip
-    res = requests_dora.try_best_2_get(api, invoked_by="get_org_name_by_arin", timeout=30)
-    if res is None or res.status_code != 200:
-        return None
+    res = await _async_get(api)
 
-    handle_json = json.loads(res.text)
-    handle = handle_json["net"]["handle"]["$"]
-    # soup = BeautifulSoup(res.text, "lxml")
-    # handle = soup.select_one("handle").text
+    try:
+        handle_json = json.loads(res)
+        handle = handle_json["net"]["handle"]["$"]
 
-    api2 = "https://whois.arin.net/rest/net/%s/pft.json?s=%s" % (handle, ip)
-    res = requests_dora.try_best_2_get(api2, invoked_by="get_org_name_by_arin", timeout=30)
-    if res is None or res.status_code != 200:
-        return None
+        api2 = "https://whois.arin.net/rest/net/%s/pft.json?s=%s" % (handle, ip)
+        res = await _async_get(api2)
 
-    name = None
-    start_address = None
-    end_address = None
-    json_whois = json.loads(res.text)["ns4:pft"]
+        name = None
+        start_address = None
+        end_address = None
+        json_whois = json.loads(res)["ns4:pft"]
 
-    if "org" in json_whois:
-        org = json_whois["org"]
-        name = org["name"]["$"]
-    if "customer" in json_whois:
-        customer = json_whois["customer"]
-        name = customer["name"]["$"]
+        if "org" in json_whois:
+            org = json_whois["org"]
+            name = org["name"]["$"]
+        if "customer" in json_whois:
+            customer = json_whois["customer"]
+            name = customer["name"]["$"]
 
-    if "net" in json_whois:
-        start_address = json_whois["net"]["startAddress"]["$"]
-        end_address = json_whois["net"]["endAddress"]["$"]
+        if "net" in json_whois:
+            start_address = json_whois["net"]["startAddress"]["$"]
+            end_address = json_whois["net"]["endAddress"]["$"]
 
-    return {
+        return {
             "ip": ip,
             "start_address": start_address,
             "end_address": end_address,
             "org_name": name,
             "from": "ARIN",
         }
+    except Exception as e:
+        return None
 
 
-def get_org_name_by_lacnic(ip):
+async def _get_org_name_by_lacnic(ip):
     api = "https://rdap.registro.br/ip/%s" % ip
-    res = requests_dora.try_best_2_get(api, timeout=30, invoked_by="get_org_name_by_lacnic")
-    if res is None or res.status_code != 200:
-        return None
+    res = await _async_get(api)
 
-    json_whois = json.loads(res.text)
-
-    list_vcard = json_whois["entities"][0]["vcardArray"][1]
-    for c in list_vcard:
-        if c[0] == "fn":
-            whois = c[3]
-            whois["ip"] = ip
-            whois["from"] = "LACNIC"
-            return whois
-
-    return None
-
-
-def get_org_name_by_apnic(ip):
-    api = "http://wq.apnic.net/query?searchtext=%s" % ip
-    res = requests_dora.try_best_2_get(api, invoked_by="get_org_name_by_apnic", timeout=30)
-    if res is None or res.status_code != 200:
-        return None
-
-    json_whois = json.loads(res.text)
     try:
+        json_whois = json.loads(res)
+
+        list_vcard = json_whois["entities"][0]["vcardArray"][1]
+        for c in list_vcard:
+            if c[0] == "fn":
+                whois = c[3]
+                whois["ip"] = ip
+                whois["from"] = "LACNIC"
+                return whois
+    except Exception as e:
+        return None
+
+
+async def _get_org_name_by_apnic(ip):
+    api = "http://wq.apnic.net/query?searchtext=%s" % ip
+    res = await _async_get(api)
+
+    try:
+        json_whois = json.loads(res)
         for entry in json_whois:
             if entry["type"] == "object" and entry["objectType"] == "inetnum":
                 attrs = entry["attributes"]
@@ -111,23 +115,21 @@ def get_org_name_by_apnic(ip):
                         whois["from"] = "APNIC"
                         return whois
     except Exception:
-        pass
-
-    return None
+        return None
 
 
-def get_org_name_by_registration_db(ip):
-    org = get_org_name_by_arin(ip)
+async def _get_org_name(ip):
+    org = await _get_org_name_by_arin(ip)
     # Asia Pacific Network Information Centre, South Brisbane #
 
     if org is not None and "Asia Pacific Network Information Centre" in org["org_name"]:
-        org = get_org_name_by_apnic(ip)
+        org = await _get_org_name_by_apnic(ip)
 
     elif org is not None and "RIPE Network Coordination Centre" in org["org_name"]:
-        org = get_org_name_by_ripe(ip)
+        org = await _get_org_name_by_ripe(ip)
 
     elif org is not None and "Latin American and Caribbean IP address Regional Registry" in org["org_name"]:
-        org = get_org_name_by_lacnic(ip)
+        org = await _get_org_name_by_lacnic(ip)
 
     elif org is None:
         return None
@@ -137,12 +139,49 @@ def get_org_name_by_registration_db(ip):
     return org
 
 
+async def _get_org_names_for_list(ip_list, desc = "extracting org names"):
+    # asyncio
+    task_list = [_get_org_name(ip) for ip in ip_list]
+
+    # # if use this code, rm the async and invoke this function directly (no progress)
+    # t1 = time.time()
+    # loop = asyncio.get_event_loop()
+    # finished_tasks = loop.run_until_complete(asyncio.wait(task_list))
+    # results = [t.result() for t in finished_tasks[0]]
+    # loop.close()
+    # t2 = time.time()
+    # print("finished in {:.2} s.".format(t2 - t1))
+
+    results = [await f for f in tqdm(asyncio.as_completed(task_list), desc = desc, total = len(task_list))]
+    return results
+
+
+def extract_org_names_friendly(ip_list, block_size = 100, sleep = 2):
+    total_res = []
+    loop = asyncio.get_event_loop()
+    for start_id in range(0, len(ip_list), block_size):
+        block = ip_list[start_id:(start_id+block_size)]
+        desc = "extracting org names of ip block {}".format(start_id // block_size)
+        results = loop.run_until_complete(_get_org_names_for_list(block, desc = desc))
+        total_res.extend(results)
+        time.sleep(sleep)
+    # loop.close()
+    return total_res
+
+
+def extract_org_names_no_limited(ip_list):
+    loop = asyncio.get_event_loop()
+    results = loop.run_until_complete(_get_org_names_for_list(ip_list))
+    # loop.close()
+    return results
+
+
 if __name__ == "__main__":
-    ip_list = ["154.17.24.36"]
-    ip_failed = []
-    for ip in pyprind.prog_bar(ip_list):
-        whois = get_org_name_by_registration_db(ip)
-        print(whois)
-        if whois is None:
-            ip_failed.append(ip)
-    print("failed: {}".format(ip_failed))
+    # ip_list = ["154.17.24.36", "154.17.24.37", "154.17.24.39", "154.17.21.36"] * 100
+    ip_list = ["54.83.30.211"] * 4
+    # # friendly
+    # res = extract_org_names_friendly(ip_list, block_size = 100, sleep = 2)
+
+    # no limited
+    res = extract_org_names_friendly(ip_list)
+    print(res)

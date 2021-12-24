@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import re
 from Doraemon.Requests import requests_dora, proxies_dora
-import pyprind
+from tqdm import tqdm
 import logging
 
 # ORG_KEYWORDS = ["college", "company", "university", "school", "corporation",
@@ -126,8 +126,7 @@ def get_entity(query_str, get_proxies_fun, wait=1.5):
             next.append("%s%s" % (host, href))
 
     # scrawl urls in list 'next'
-    bar = pyprind.ProgBar(len(next), title="crawling relevant org names...")
-    for url in next:
+    for url in tqdm(next, desc="crawling relevant org names..."):
         res = requests_dora.try_best_2_get(url, invoked_by="get_org_name", headers=requests_dora.get_default_headers(), get_proxies_fun=get_proxies_fun)
         soup = BeautifulSoup(res.text, "lxml")
 
