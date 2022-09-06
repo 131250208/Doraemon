@@ -9,31 +9,51 @@ import base64
 import random
 import rsa
 import logging
-import getopt
+logging.getLogger().setLevel(logging.INFO)
 
+import getopt
+from DecryptLogin import login
+import os
 
 class WeiboRobot:
-
     def __init__(self, username, password):
-        self.__session = requests.session()
-        self.__uid = ""
-        self.__user_nick = ""
+        client = login.Client()
+        weibo = client.weibo(reload_history=True)
+        infos_return, weibo_session = weibo.login(username, password, mode='scanqr')
+        self.nickname = infos_return.get('nick')
+        self.uid = infos_return.get('uid')
 
-        login_info = self.__login_simulate(username, password)
-        logging.warning("login info: {}".format(login_info))
-        assert login_info is not None
-        headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-            "Accept-Encoding": "gzip,deflate,br",
-            "Accept-Language": "zh-CN,zh;q=0.8",
-            "Connection": "keep-alive",
-            "Host": "weibo.com",
-            "Referer": "https://weibo.com/",
-            "Upgrade-Insecure - Requests": "1",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36",
+        logging.info("nick: {}, uid: {}".format(self.nickname, self.uid))
+        self.__session = weibo_session
+
+        # login_info = self.__login_simulate(username, password)
+        # logging.warning("login info: {}".format(login_info))
+        # assert login_info is not None
+        # headers = {
+        #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        #     "Accept-Encoding": "gzip,deflate,br",
+        #     "Accept-Language": "zh-CN,zh;q=0.8",
+        #     "Connection": "keep-alive",
+        #     "Host": "weibo.com",
+        #     "Referer": "https://weibo.com/",
+        #     "Upgrade-Insecure - Requests": "1",
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36",
+        # }
+        #
+        # self.__session.headers.update(headers)
+
+        self.headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh-CN,zh;q=0.8',
+            'Connection': 'keep-alive',
+            "x-xsrf-token": "ca8f34",
+            # "cookie": "_T_WM=95408813990; XSRF-TOKEN=ca8f34; SCF=AvAoiM-KriYpOE7doKShZInAbXDWWZNF2LALSnsH7OKum4ytQ30c_ymO7WpHP1Zt4EOkNaeFawbBlpQjRPQ4yoM.; SUB=_2A25Pa7GDDeRhGeFJ61YR-CnEzTSIHXVsl9_LrDV6PUJbktCOLXbNkW1NfKbZ-gLFw-TULujLZsmu8bvgIK35TFs1; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFMOSlN8oDRwUroYf4GTYxo5NHD95QNS05XehnN1hqRWs4Dqcjki--NiKy8iKyFi--4iKLFi-2Ri--fiKLsiKy8Bg4.wBtt; WEIBOCN_FROM=1110006030; MLOGIN=1; SSOLoginState=1651491369; M_WEIBOCN_PARAMS=lfid=102803&luicode=20000174&uicode=20000174; mweibo_short_token=7674ff4669",
+            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
         }
-
-        self.__session.headers.update(headers)
+        # 设置一个会话给m.weibo.cn，weibo.com登录并不能同步状态到m.weibo.cn，mweibo用cookie
+        self.mweibo_session = requests.Session()
+        # self.mweibo_session.get(url, headers=headers)  # do not forget to set the cookie
 
     def __prelogin(self, username_encoded):
         url = "http://login.sina.com.cn/sso/prelogin.php"
@@ -245,47 +265,118 @@ class WeiboRobot:
             print(res)
             return False
 
-    def post(self, text, img_url_list=None, img_id_list=None):
+    # def post(self, text, img_url_list=None, img_id_list=None):
+    #     '''
+    #     post text
+    #     :param text:
+    #     :return:
+    #     '''
+    #     payload = {
+    #         'text': text,
+    #         'appkey': '',
+    #         'style_type': '1',
+    #         'pic_id': '',
+    #         'tid': '',
+    #         'pdetail': '',
+    #         'rank': '0',
+    #         'rankid': '',
+    #         'module': 'stissue',
+    #         'pub_source': 'main_',
+    #         'pub_type': 'dialog',
+    #         'isPri': '0',
+    #         '_t': '0',
+    #     }
+    #
+    #     if img_id_list is None and img_url_list is not None:
+    #         img_id_list = []
+    #         for url in img_url_list:
+    #             img_id = self.__up_img(url)
+    #             if img_id is not None:
+    #                 img_id_list.append(img_id)
+    #
+    #     if img_id_list is not None:
+    #         pic_id = "|".join(img_id_list)
+    #         payload["pic_id"] = pic_id
+    #
+    #     res = self.__session.post("https://weibo.com/aj/mblog/add", data=payload).text
+    #     res = json.loads(res)
+    #     if res['code'] == '100000':
+    #         logging.warning("post blog success!")
+    #         return True
+    #     else:
+    #         logging.warning("post blog fail... " + res['msg'])
+    #         return False
+
+    def upload_pic(self, pic_path):
+        picture = open(pic_path, "rb").read()
+        url = 'https://picupload.weibo.com/interface/pic_upload.php'
+        params = {
+            'data': '1',
+            'p': '1',
+            'url': 'weibo.com/u/%s' % self.uid,
+            'markpos': '1',
+            'logo': '1',
+            'nick': '@%s' % self.nickname,
+            'marks': '1',
+            'app': 'miniblog',
+            's': 'json',
+            'pri': 'null',
+            'file_source': '1'
+        }
+        res = self.__session.post(url, headers=self.headers, params=params, data=picture)
+        res_json = res.json()
+        if res_json['code'] == 'A00006':
+            pid = res_json['data']['pics']['pic_1']['pid']
+            return pid
+        else:
+            logging.warning("upload pic failed...")
+            return None
+
+    def post(self, text, pic_path_list=None, rank=0):
         '''
-        post text
+        post a blog
         :param text:
+        :param pictures:
         :return:
         '''
-        payload = {
+        # 上传图片
+        if pic_path_list is None:
+            pic_path_list = []
+        pic_ids = []
+        for pic_path in pic_path_list:
+            pid = self.upload_pic(pic_path)
+            time.sleep(random.random() + 0.5)
+            pic_ids.append(pid)
+
+        pic_ids = [idx for idx in pic_ids if idx is not None]
+        # 发微博
+        url = 'https://www.weibo.com/aj/mblog/add?ajwvr=6&__rnd=%d' % int(time.time() * 1000)
+        data = {
+            'title': '',
+            'location': 'v6_content_home',
             'text': text,
             'appkey': '',
             'style_type': '1',
-            'pic_id': '',
+            'pic_id': '|'.join(pic_ids),
             'tid': '',
             'pdetail': '',
-            'rank': '0',
+            'mid': '',
+            'isReEdit': 'false',
+            'gif_ids': '',
+            'rank': str(rank),  # 0 公开, 1自己可见, 6好友圈
             'rankid': '',
-            'module': 'stissue',
-            'pub_source': 'main_',
-            'pub_type': 'dialog',
-            'isPri': '0',
-            '_t': '0',
+            'pub_source': 'page_2',
+            'topic_id': '',
+            'updata_img_num': str(len(pic_ids)),
+            'pub_type': 'dialog'
         }
-
-        if img_id_list is None and img_url_list is not None:
-            img_id_list = []
-            for url in img_url_list:
-                img_id = self.__up_img(url)
-                if img_id is not None:
-                    img_id_list.append(img_id)
-
-        if img_id_list is not None:
-            pic_id = "|".join(img_id_list)
-            payload["pic_id"] = pic_id
-
-        res = self.__session.post("https://weibo.com/aj/mblog/add", data=payload).text
-        res = json.loads(res)
-        if res['code'] == '100000':
-            logging.warning("post blog success!")
-            return True
-        else:
-            logging.warning("post blog fail... " + res['msg'])
-            return False
+        headers = self.headers.copy()
+        headers.update({'Referer': 'http://www.weibo.com/u/%s/home?wvr=5' % self.uid})
+        res = self.__session.post(url, headers=headers, data=data)
+        is_success = False
+        if res.status_code == 200:
+            is_success = True
+        return is_success
 
     def like_blog(self, blog_mid):
         '''
@@ -354,7 +445,7 @@ class WeiboRobot:
         payload = {
             'act': 'post',
             'mid': blog_mid,
-            'uid': self.__uid,
+            'uid': self.uid,
             'isroot': '0',
             'content': text,
             'module': 'scommlist',
@@ -369,22 +460,27 @@ class WeiboRobot:
         if img_id is not None:
             payload["pic_id"] = img_id
 
-        res = self.__session.post("https://weibo.com/aj/v6/comment/add", data=payload)
+        url = "https://weibo.com/aj/v6/comment/add?ajwvr=6&__rnd=%d" % int(time.time() * 1000)
+
+        headers = self.headers.copy()
+        headers.update({'Referer': 'http://www.weibo.com/u/%s/home?wvr=5' % self.uid})
+        res = self.__session.post(url, headers=headers, data=payload)
 
         try:
             res = json.loads(res.text)
             if res['code'] == '100000':
-                logging.warning("comment_forward success! comments: %s" % text)
+                logging.info("comment_forward success! comment: %s" % text)
+                return True
             else:
-                logging.warning("%s comment_forward %s fail... code: %s msg: %s" % (
+                logging.info("%s comment_forward %s fail... code: %s msg: %s" % (
                     self.__uid, blog_mid, res['code'], res['msg']))
         except Exception as e:
             logging.warning(e)
 
-        return res
+        return False
 
     def reply_comment(self, blog_mid, comment_id, text, approval=False
-                      , forward=False, img_url=None, img_id=None):
+                      , forward=False, img_path=None):
         '''
         reply a comment, the args are the same as function comment_forward
         :param blog_mid:
@@ -409,35 +505,75 @@ class WeiboRobot:
             "forward": "1" if forward else "0",
             "mid": blog_mid,
             "module": "scommlist",
-            # "nick": "一拳超超",
+            "nick": self.nickname,
             # "ouid": "2887964854",
             # "pdetail": "1005056219737121",
             # "root_comment_id": "4221420517644305",
             # "status_owner_user": "6219737121",
-            "uid": self.__uid,
+            "uid": self.uid,
         }
 
-        if img_url is not None:
-            pic_id = self.__up_img(img_url)
-            payload["pic_id"] = pic_id
-        if img_id is not None:
-            payload["pic_id"] = img_id
+        if img_path is not None:
+            pic_id = self.upload_pic(img_path)
+            payload["pic_id"] = pic_id if pic_id is not None else ""
 
-        res = self.__session.post("https://weibo.com/aj/v6/comment/add", data=payload)
+        url = "https://weibo.com/aj/v6/comment/add?ajwvr=6&__rnd=%d" % int(time.time() * 1000)
+        headers = self.headers.copy()
+        headers.update({'Referer': 'http://www.weibo.com/u/%s/home?wvr=5' % self.uid})
+        res = self.__session.post(url, headers=headers, data=payload)
 
         try:
             res = json.loads(res.text)
             if res['code'] == '100000':
-                logging.warning("comment_forward success! comments: %s" % text)
+                logging.warning("comment_forward success! reply: %s" % text)
+                return True
             else:
                 logging.warning(
                     "%s comment_forward %s fail... code: %s msg: %s" % (
-                        self.__uid, comment_id, res['code'], res['msg']))
+                        self.uid, comment_id, res['code'], res['msg']))
         except Exception as e:
             print("it is not json")
             logging.warning(e)
 
-        return res
+        return False
+
+    def get_comments_data(self, mid):
+        batch_size = 200
+        comments_url = "https://weibo.com/ajax/statuses/buildComments?flow=0&is_reload=1&id={}&is_show_bulletin=2&is_mix=0&count={}&uid={}".format(
+            mid, batch_size, self.uid)
+
+        while True:
+            try:
+                res = self.__session.get(comments_url)
+                res_dict = json.loads(res.text)
+                if res_dict["ok"] == 1:
+                    break
+            except Exception as e:
+                logging.warning("获取评论失败，重试")
+                pass
+
+        comments_data = []
+        comments_data.extend(res_dict["data"])
+
+        while res_dict["max_id"] != 0:
+            comments_url = "https://weibo.com/ajax/statuses/buildComments?flow=0&is_reload=1&id={}&is_show_bulletin=2&is_mix=0&max_id={}&count={}&uid={}".format(
+                mid, res_dict["max_id"], batch_size, self.uid)
+            while True:
+                try:
+                    res = self.__session.get(comments_url)
+                    res_dict = json.loads(res.text)
+                    if res_dict["ok"] == 1:
+                        break
+                except Exception as e:
+                    logging.warning("获取评论失败，重试")
+                    pass
+
+            if len(res_dict["data"]) > 0:
+                comments_data.extend(res_dict["data"])
+            elif res_dict["trendsText"] == "已加载全部评论":
+                break
+
+        return comments_data
 
     def __img_bs64(self, url):
         '''
@@ -639,17 +775,65 @@ class WeiboRobot:
                 self.__interface_4_all_instructions(instruction_name, **parameters_dict)
             except Exception as e:
                 logging.warning("sth went wrong, {}".format(e))
+
+
+def monitor_reply_gaokao_en(blog_id, mem_path="./query.mem"):
+    mem_list = list()
+    if mem_path is not None:
+        with open(mem_path, "r", encoding="utf-8") as file_in:
+            for line in file_in:
+                mem_list.append(line.strip("\n"))
+
+    weibo_robot = WeiboRobot("13120178370", "Weibo6981228.")
+     # "4775107736111803"
+    memory_set = set(mem_list)
+    wish = ["高考加油！",
+            "祝考试顺利",
+            "祝高考成功",
+            "祝金榜题名!",
+            "祝你圆梦理想的大学",
+            "祝考上心仪的学校",
+            "加油，等你好消息！"]
+    while True:
+        comments = weibo_robot.get_comments_data(blog_id)
+        for com in comments:
+            com_txt = re.sub("\[.*?\]", " ", com["text_raw"])
+            com_txt = re.sub("https?://[^\s]*", " ", com_txt)
+            com_txt = re.sub("@[a-zA-Z]+", " ", com_txt)
+
+            for word in re.findall("[a-zA-Z]+", com_txt):
+                mem = "{},{}".format(com["user"]["id"], word)
+                if mem not in memory_set:
+                    img_path = "src/shs_words/{}.png".format(word)
+                    if os.path.exists(img_path):
+                        res = weibo_robot.reply_comment(blog_id, com["id"], "{}, {}".format(word, random.choice(wish)),
+                                                  img_path=img_path)
+                    else:
+                        res = weibo_robot.reply_comment(blog_id, com["id"], "暂未收录该词：{}，请检查拼写".format(word))
+                    if res is True:
+                        memory_set.add(mem)
+                    with open(mem_path, "a", encoding="utf-8") as file_out:
+                        file_out.write("{}\n".format(mem))
+                    time.sleep(random.random() + 1)
+        time.sleep(random.random() + 0.8)
+
+
 if __name__ == "__main__":
-    weibo_robot = WeiboRobot("15850782585", "Sina6981228.")
+    monitor_reply_gaokao_en("4775292251410441")
+
+    # weibo_robot.post("test send_weibo", pic_path_list=["./test2.png", ], rank=1)
+    # weibo_robot.reply_comment("4775107736111803", "4775110336577568", "reply wyc!")
+    # weibo_robot.reply_comment("4773718829566516", "4773726883415094", "test")
+
     # feedback = weibo_robot.post("Robot Test...", img_url_list=["test1.png", "test2.png"])
 
-    '''
-    -i post --text=HellowWorld --img_url_list=test1.png|test2.png
-    -i comment_forward --blog_mid=4321252124398928 --text=heyguys --forward=True --img_url=test1.png
-    -i like_blog --blog_mid=4321252124398928
-    -i like_comment --comment_id=4321252828681425
-    -i reply_comment --blog_mid=4321252124398928 --comment_id=4321252828681425 --text=reply_comment --img_url=test1.png
-    -i del_comment --blog_mid=4321252124398928 --comment_id=4321252828681425
-    -i del_blog --blog_mid=4321252124398928
-    '''
-    weibo_robot.shell()
+    # '''
+    # -i post --text=HellowWorld --img_url_list=test1.png|test2.png
+    # -i comment_forward --blog_mid=4321252124398928 --text=heyguys --forward=True --img_url=test1.png
+    # -i like_blog --blog_mid=4321252124398928
+    # -i like_comment --comment_id=4321252828681425
+    # -i reply_comment --blog_mid=4321252124398928 --comment_id=4321252828681425 --text=reply_comment --img_url=test1.png
+    # -i del_comment --blog_mid=4321252124398928 --comment_id=4321252828681425
+    # -i del_blog --blog_mid=4321252124398928
+    # '''
+    # weibo_robot.shell()
