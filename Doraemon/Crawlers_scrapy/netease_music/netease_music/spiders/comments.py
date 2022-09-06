@@ -2,6 +2,7 @@ import scrapy
 import re
 import json
 
+
 class CommentsSpider(scrapy.Spider):
     name = 'comments'
     start_urls = [
