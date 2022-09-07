@@ -56,10 +56,51 @@ class WeiboBlogCommentsSpiderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
+import requests
+import threading, time
+import json
+import random
+
+
 class WeiboBlogCommentsDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
+
+    # def __init__(self):
+    #     super(WeiboBlogCommentsDownloaderMiddleware, self).__init__()
+    #
+    #     self.proxies = []
+    #
+    #     # thread: updating
+    #     def upd_proxy():
+    #         count = 0
+    #         while True:
+    #             res = self.ext_proxies()
+    #             if res is True:
+    #                 count += 1
+    #             time.sleep(14)
+    #             if count % 4 == 0:
+    #                 self.proxies = self.proxies[10:]
+    #     t = threading.Thread(target=upd_proxy, name='LoopThread')
+    #     t.start()
+    #     # t.join()
+
+    # def ext_proxies(self):
+    #     url = "https://proxyapi.horocn.com/api/v2/proxies?order_id=AZZN1743303529091623&num=10&format=json&line_separator=win&can_repeat=no&user_token=ad054b709ea6e1fa2a9c5bcd081483c9"
+    #     res = requests.get(url)
+    #     res_js = json.loads(res.text)
+    #     if res_js["code"] == 0 and res_js["msg"] == "OK":
+    #         self.proxies.extend(["{}:{}".format(p["host"], p["port"])
+    #                              for p in res_js["data"]])
+    #         return True
+    #     else:
+    #         return False
+    #
+    # def get_proxy(self):
+    #     if len(self.proxies) == 0:
+    #         self.ext_proxies()
+    #     return random.choice(self.proxies)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -71,6 +112,13 @@ class WeiboBlogCommentsDownloaderMiddleware:
     def process_request(self, request, spider):
         # Called for each request that goes through the downloader
         # middleware.
+
+        # if len(spider.proxies) == 0:
+        #     self.ext_proxies(spider.proxies)
+        #
+        # proxy = random.choice(spider.proxies)
+        # request.meta["proxy"] = "http://{}".format(proxy)
+        # print(f"TestProxyMiddleware --> {proxy}")
 
         # Must either:
         # - return None: continue processing this request
@@ -100,4 +148,32 @@ class WeiboBlogCommentsDownloaderMiddleware:
         pass
 
     def spider_opened(self, spider):
+        spider.proxies = []
+
+        # thread: updating
+        # def upd_proxy():
+        #     count = 0
+        #     while True:
+        #         res = self.ext_proxies(spider.proxies)
+        #         if res is True:
+        #             count += 1
+        #         time.sleep(14)
+        #         if count % 4 == 0:
+        #             spider.proxies = spider.proxies[10:]
+        # spider.proxy_thread = threading.Thread(target=upd_proxy, name='LoopThread')
+        # spider.proxy_thread.setDaemon(True)
+        # spider.proxy_thread.start()
+
+        # t.join()as
         spider.logger.info('Spider opened: %s' % spider.name)
+
+    def ext_proxies(self, proxies):
+        url = "https://proxyapi.horocn.com/api/v2/proxies?order_id=AZZN1743303529091623&num=10&format=json&line_separator=win&can_repeat=no&user_token=ad054b709ea6e1fa2a9c5bcd081483c9"
+        res = requests.get(url)
+        res_js = json.loads(res.text)
+        if res_js["code"] == 0 and res_js["msg"] == "OK":
+            proxies.extend(["{}:{}".format(p["host"], p["port"])
+                                 for p in res_js["data"]])
+            return True
+        else:
+            return False
